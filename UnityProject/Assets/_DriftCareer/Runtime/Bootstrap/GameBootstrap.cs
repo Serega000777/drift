@@ -41,8 +41,35 @@ namespace DriftCareer.Runtime
             EnsureEventSystem();
             var services = GameServices.Create();
             Controller = gameObject.AddComponent<GameController>();
-            Controller.Boot(services);
+            Controller.StartCoroutine(Controller.BootRoutine(services));
             SafeLog.Info($"Booted. Platform={services.Device.kind} Tier={services.Defaults.quality} Save={Application.persistentDataPath}");
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+        }
+
+        /// <summary>Tears the game down and boots it again on the next frame (used after erasing player data).</summary>
+        public static void Restart()
+        {
+            var old = Instance;
+            new GameObject("DriftCareer.Restarter").AddComponent<Restarter>();
+            if (old != null) Destroy(old.gameObject);
+        }
+
+        private sealed class Restarter : MonoBehaviour
+        {
+            private int _frames;
+
+            private void Awake() => DontDestroyOnLoad(gameObject);
+
+            private void Update()
+            {
+                if (++_frames < 2) return;
+                new GameObject("DriftCareer").AddComponent<GameBootstrap>();
+                Destroy(gameObject);
+            }
         }
 
         /// <summary>

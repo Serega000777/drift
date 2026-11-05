@@ -28,30 +28,53 @@ namespace DriftCareer.Runtime.Track
 
         public static Result Build(AcademySite site, Transform parent, bool highQuality)
         {
+            var result = new Result();
+            var routine = BuildRoutine(site, parent, highQuality, result, null);
+            while (routine.MoveNext()) { }
+            return result;
+        }
+
+        /// <summary>
+        /// Same as <see cref="Build"/>, but yields between stages so a loading screen can animate and show real progress.
+        /// Progress callback: (0..1, localization key of the stage).
+        /// </summary>
+        public static System.Collections.IEnumerator BuildRoutine(AcademySite site, Transform parent, bool highQuality, Result r, System.Action<float, string> progress)
+        {
             var root = new GameObject("Academy").transform;
             root.SetParent(parent, false);
-            var r = new Result { root = root };
-
+            r.root = root;
+            progress?.Invoke(0.05f, "loading.stage.lighting");
             SetupEnvironment(highQuality);
+            yield return null;
+            progress?.Invoke(0.18f, "loading.stage.lot");
             BuildGround(site, root);
+            yield return null;
+            progress?.Invoke(0.35f, "loading.stage.hangar");
             BuildHangar(site, root, highQuality);
+            yield return null;
+            progress?.Invoke(0.5f, "loading.stage.markings");
             BuildMarkings(site, root);
             r.drillMarkers = BuildDrillMarkers(site, root);
+            yield return null;
+            progress?.Invoke(0.62f, "loading.stage.perimeter");
             BuildPerimeter(site, root);
+            yield return null;
+            progress?.Invoke(0.72f, "loading.stage.scenery");
             BuildScenery(site, root, highQuality);
+            yield return null;
             if (highQuality)
             {
+                progress?.Invoke(0.8f, "loading.stage.reflections");
                 // Reflections for car paint: one probe inside the hangar, one over the lot.
                 var hc = V(site.HangarCenter, site.hangarHeight * 0.4f);
                 GraphicsManager.CreateProbe(root, hc, new Vector3(site.hangarSize.X, site.hangarHeight, site.hangarSize.Y), 128);
                 GraphicsManager.CreateProbe(root, new Vector3(0f, 6f, 0f), new Vector3(site.lotSize, 40f, site.lotSize), 128);
+                yield return null;
             }
-
             r.spawnPosition = V(site.SpawnPosition, 0.04f);
             r.spawnRotation = Quaternion.Euler(0f, site.SpawnYawDeg, 0f);
             r.walkStart = V(site.HangarCenter + new Vec2(-site.hangarSize.X * 0.32f, -site.hangarSize.Y * 0.38f));
             r.exitPoint = V(site.DoorCenter + new Vec2(0f, site.exitLaneLength * 0.7f));
-            return r;
         }
 
         private static void SetupEnvironment(bool highQuality)

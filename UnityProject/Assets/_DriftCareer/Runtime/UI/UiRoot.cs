@@ -27,6 +27,9 @@ namespace DriftCareer.Runtime.UI
         private readonly Stack<FocusNavigator> _modal = new Stack<FocusNavigator>();
         private Action _modalBack;
 
+        public LoadingScreen Loading { get; private set; }
+        public TransitionOverlay Transition { get; private set; }
+
         public bool HasModal => _modal.Count > 0;
         public FocusNavigator ModalNav => _modal.Count > 0 ? _modal.Peek() : null;
 
@@ -65,6 +68,8 @@ namespace DriftCareer.Runtime.UI
             ScreenLayer = Ui.El("dc-layer");
             OverlayLayer = Ui.El("dc-layer");
             foreach (var l in new[] { HudLayer, ScreenLayer, OverlayLayer }) { l.pickingMode = PickingMode.Ignore; Root.Add(l); }
+            Loading = new LoadingScreen(this, OverlayLayer);
+            Transition = new TransitionOverlay(OverlayLayer);
             _toast = Ui.Label("", "dc-toast");
             _toast.pickingMode = PickingMode.Ignore;
             OverlayLayer.Add(_toast);
@@ -109,6 +114,13 @@ namespace DriftCareer.Runtime.UI
             else _fade.RemoveFromClassList("dc-fade--on");
             _fade.pickingMode = toBlack ? PickingMode.Position : PickingMode.Ignore;
             if (then != null) _fade.schedule.Execute(then).StartingIn(ms);
+        }
+
+        /// <summary>Angled wipe (or fade with reduce-motion); <paramref name="midpoint"/> runs while the screen is covered.</summary>
+        public void Wipe(Action midpoint)
+        {
+            bool calm = Game != null && Game.Services != null && Game.Services.Settings.reduceMotion;
+            Transition.Wipe(midpoint, calm, this);
         }
 
         public void Toast(string text, float seconds = 2.2f, string color = null)

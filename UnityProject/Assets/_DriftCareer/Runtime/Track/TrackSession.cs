@@ -50,6 +50,15 @@ namespace DriftCareer.Runtime.Track
 
         public static TrackSession BuildAcademy(GameServices services, float qualityScale)
         {
+            TrackSession session = null;
+            var routine = BuildAcademyRoutine(services, qualityScale, s => session = s, null);
+            while (routine.MoveNext()) { }
+            return session;
+        }
+
+        /// <summary>Stage-by-stage build (yields between stages) for the loading screen.</summary>
+        public static System.Collections.IEnumerator BuildAcademyRoutine(GameServices services, float qualityScale, Action<TrackSession> done, Action<float, string> progress)
+        {
             var scene = SceneManager.CreateScene("Track_academy_" + DateTime.UtcNow.Ticks);
             SceneManager.SetActiveScene(scene);
             var root = new GameObject("TrackSession");
@@ -58,21 +67,26 @@ namespace DriftCareer.Runtime.Track
             session.TrackId = "academy";
             session.Site = services.Site;
             bool hq = qualityScale >= 0.6f;
-            session.World = AcademyBuilder.Build(services.Site, root.transform, hq);
+            var world = new AcademyBuilder.Result();
+            session.World = world;
+            var build = AcademyBuilder.BuildRoutine(services.Site, root.transform, hq, world, (p, key) => progress?.Invoke(p * 0.8f, key));
+            while (build.MoveNext()) yield return build.Current;
             Skidmarks.Create(root.transform);
 
-            // Obstacles + layout model.
+            progress?.Invoke(0.84f, "loading.stage.obstacles");
             session.Obstacles = ObstacleField.Create(root.transform, services.Obstacles);
             var rules = services.Site.CreateRules(services.Defaults.obstacleBudget);
             session.Layout = new LayoutEditorModel(services.Obstacles, rules, services.LoadLastLayoutOrDefault());
             session.Layout.Changed += () => session.Obstacles.Sync(session.Layout.Layout);
             session.Obstacles.Sync(session.Layout.Layout);
+            yield return null;
 
+            progress?.Invoke(0.92f, "loading.stage.car");
             session.BuildCar(services, qualityScale);
-
             session.Drift = new DriftSession(services.Site);
             session.Drift.Bind(session.Car, session.Obstacles);
-            return session;
+            yield return null;
+            done?.Invoke(session);
         }
 
         /// <summary>(Re)creates the player car for the selected vehicle (garage car switch).</summary>
