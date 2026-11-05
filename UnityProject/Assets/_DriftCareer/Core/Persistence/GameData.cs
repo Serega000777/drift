@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DriftCareer.Core.Assists;
+using DriftCareer.Core.Gameplay;
 using DriftCareer.Core.Garage;
 using DriftCareer.Core.Vehicle;
 
@@ -35,7 +36,48 @@ namespace DriftCareer.Core.Persistence
         public bool showTelemetry;
         public float hudScale = 1f;
         public bool playIntro = true;
+        public bool autoRollOut = true;
+        public bool ghostEnabled = true;
         public HealthSettings health = new HealthSettings();
+
+        // Detailed graphics
+        public float renderScale = 1f;
+        public int shadowQuality = 2;          // 0 off, 1 low, 2 medium, 3 high
+        public float shadowDistance = 120f;
+        public int antiAliasing = 2;           // 0 off, 1 FXAA, 2 SMAA, 3 MSAA 4x
+        public bool postProcessing = true;
+        public bool bloom = true;
+        public bool ambientOcclusion = true;
+        public bool motionBlur;
+        public bool vignette = true;
+        public bool filmGrain;
+        public bool reflections = true;
+        public bool hdr = true;
+        public bool vSync;
+        public float particleDensity = 1f;
+
+        // Camera
+        public float chaseDistance = 1f;
+        public float chaseHeight = 1f;
+        public float cameraShake = 1f;
+        public float driftLook = 1f;
+
+        // Controls extras
+        public float steeringLinearity = 1f;   // exponent applied to stick/touch steering
+        public bool handbrakeToggle;
+
+        // HUD / accessibility
+        public float hudOpacity = 1f;
+        public bool showScore = true;
+        public bool showTireDiagram = true;
+        public bool showAngleMeter = true;
+        public bool showHudButtons = true;
+        public bool reduceMotion;
+        public bool colorblindHud;
+
+        // Audio extras
+        public float tiresVolume = 1f;
+        public float uiVolume = 0.8f;
 
         public SettingsData Clone()
         {
@@ -56,6 +98,19 @@ namespace DriftCareer.Core.Persistence
             effectsVolume = MathUtil.Clamp01(MathUtil.Finite(effectsVolume, 1f));
             musicVolume = MathUtil.Clamp01(MathUtil.Finite(musicVolume, 0.6f));
             hudScale = MathUtil.Clamp(MathUtil.Finite(hudScale, 1f), 0.7f, 1.4f);
+            renderScale = MathUtil.Clamp(MathUtil.Finite(renderScale, 1f), 0.5f, 1.5f);
+            shadowQuality = MathUtil.Clamp(shadowQuality, 0, 3);
+            shadowDistance = MathUtil.Clamp(MathUtil.Finite(shadowDistance, 120f), 30f, 300f);
+            antiAliasing = MathUtil.Clamp(antiAliasing, 0, 3);
+            particleDensity = MathUtil.Clamp(MathUtil.Finite(particleDensity, 1f), 0.2f, 1.5f);
+            chaseDistance = MathUtil.Clamp(MathUtil.Finite(chaseDistance, 1f), 0.7f, 1.6f);
+            chaseHeight = MathUtil.Clamp(MathUtil.Finite(chaseHeight, 1f), 0.6f, 1.8f);
+            cameraShake = MathUtil.Clamp01(MathUtil.Finite(cameraShake, 1f));
+            driftLook = MathUtil.Clamp(MathUtil.Finite(driftLook, 1f), 0f, 1.5f);
+            steeringLinearity = MathUtil.Clamp(MathUtil.Finite(steeringLinearity, 1f), 0.5f, 2.5f);
+            hudOpacity = MathUtil.Clamp(MathUtil.Finite(hudOpacity, 1f), 0.3f, 1f);
+            tiresVolume = MathUtil.Clamp01(MathUtil.Finite(tiresVolume, 1f));
+            uiVolume = MathUtil.Clamp01(MathUtil.Finite(uiVolume, 0.8f));
             if (health == null) health = new HealthSettings();
             health.tireWearMultiplier = MathUtil.Clamp(MathUtil.Finite(health.tireWearMultiplier, 1f), 0f, 5f);
             if (language != "ru" && language != "en") language = "ru";
@@ -87,6 +142,21 @@ namespace DriftCareer.Core.Persistence
         public float playTimeSec;
         public string lastLayoutName = "";
         public List<string> customVehicleIds = new List<string>();
+        public Wallet wallet = new Wallet { credits = 5000 };
+        /// <summary>Owned tuning items/engines/parts (stock items are implicit).</summary>
+        public HashSet<string> ownedItems = new HashSet<string>(StringComparer.Ordinal) { "tire.Sport", "tire.DriftSemiSlick", "tire.Street" };
+        public List<string> ownedVehicles = new List<string> { "placeholder_rwd", "classic_sedan_12" };
+        public Dictionary<string, ChallengeProgress> challenges = new Dictionary<string, ChallengeProgress>(StringComparer.Ordinal);
+        public Dictionary<string, float> bestScores = new Dictionary<string, float>(StringComparer.Ordinal);
+        public Dictionary<string, int> bestMedals = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        public bool RecordScore(string key, float score, Medal medal)
+        {
+            bool improved = false;
+            if (!bestScores.TryGetValue(key, out var b) || score > b) { bestScores[key] = score; improved = true; }
+            if (!bestMedals.TryGetValue(key, out var m) || (int)medal > m) bestMedals[key] = (int)medal;
+            return improved;
+        }
 
         public VehicleTuningState TuningFor(string vehicleId)
         {
@@ -117,7 +187,9 @@ namespace DriftCareer.Core.Persistence
                 .Set("preset", t.presetName ?? "")
                 .Set("compoundFront", t.compoundFront.ToString())
                 .Set("compoundRear", t.compoundRear.ToString())
-                .Set("diffType", t.diffType.ToString());
+                .Set("diffType", t.diffType.ToString())
+                .Set("engine", t.engineSwapId ?? "")
+                .Set("stripped", t.strippedInterior).Set("cage", t.rollCage).Set("hydro", t.hydraulicHandbrake).Set("battery", t.batteryInTrunk);
             var values = JsonValue.NewObject();
             foreach (var p in TuningCatalog.Parameters) values.Set(p.id, p.Get(t));
             o.Set("values", values);
@@ -146,6 +218,11 @@ namespace DriftCareer.Core.Persistence
             t.compoundFront = o.GetEnum("compoundFront", t.compoundFront);
             t.compoundRear = o.GetEnum("compoundRear", t.compoundRear);
             t.diffType = o.GetEnum("diffType", t.diffType);
+            t.engineSwapId = o.GetString("engine", "");
+            t.strippedInterior = o.GetBool("stripped");
+            t.rollCage = o.GetBool("cage");
+            t.hydraulicHandbrake = o.GetBool("hydro");
+            t.batteryInTrunk = o.GetBool("battery");
             var values = o.GetObject("values");
             if (values != null)
                 foreach (var p in TuningCatalog.Parameters)
@@ -193,7 +270,14 @@ namespace DriftCareer.Core.Persistence
                 .Set("fps", s.targetFps).Set("master", s.masterVolume).Set("engine", s.engineVolume).Set("sfx", s.effectsVolume)
                 .Set("music", s.musicVolume).Set("vibration", s.vibration).Set("telemetry", s.showTelemetry).Set("hudScale", s.hudScale)
                 .Set("intro", s.playIntro).Set("damage", s.health.damage.ToString()).Set("tireWear", s.health.tireWearMultiplier)
-                .Set("blowouts", s.health.blowouts);
+                .Set("blowouts", s.health.blowouts).Set("rollout", s.autoRollOut).Set("ghost", s.ghostEnabled)
+                .Set("renderScale", s.renderScale).Set("shadows", s.shadowQuality).Set("shadowDist", s.shadowDistance).Set("aa", s.antiAliasing)
+                .Set("post", s.postProcessing).Set("bloom", s.bloom).Set("ssao", s.ambientOcclusion).Set("motionBlur", s.motionBlur)
+                .Set("vignette", s.vignette).Set("grain", s.filmGrain).Set("reflections", s.reflections).Set("hdr", s.hdr).Set("vsync", s.vSync)
+                .Set("particles", s.particleDensity).Set("camDist", s.chaseDistance).Set("camHeight", s.chaseHeight).Set("shake", s.cameraShake)
+                .Set("driftLook", s.driftLook).Set("linearity", s.steeringLinearity).Set("hbToggle", s.handbrakeToggle).Set("hudOpacity", s.hudOpacity)
+                .Set("hudScore", s.showScore).Set("hudTires", s.showTireDiagram).Set("hudAngle", s.showAngleMeter).Set("hudButtons", s.showHudButtons)
+                .Set("reduceMotion", s.reduceMotion).Set("colorblind", s.colorblindHud).Set("tiresVol", s.tiresVolume).Set("uiVol", s.uiVolume);
         }
 
         public SettingsData Decode(JsonValue j, int version)
@@ -226,6 +310,37 @@ namespace DriftCareer.Core.Persistence
             s.health.damage = j.GetEnum("damage", s.health.damage);
             s.health.tireWearMultiplier = j.GetFloat("tireWear", s.health.tireWearMultiplier);
             s.health.blowouts = j.GetBool("blowouts", s.health.blowouts);
+            s.autoRollOut = j.GetBool("rollout", d.autoRollOut);
+            s.ghostEnabled = j.GetBool("ghost", d.ghostEnabled);
+            s.renderScale = j.GetFloat("renderScale", d.renderScale);
+            s.shadowQuality = j.GetInt("shadows", d.shadowQuality);
+            s.shadowDistance = j.GetFloat("shadowDist", d.shadowDistance);
+            s.antiAliasing = j.GetInt("aa", d.antiAliasing);
+            s.postProcessing = j.GetBool("post", d.postProcessing);
+            s.bloom = j.GetBool("bloom", d.bloom);
+            s.ambientOcclusion = j.GetBool("ssao", d.ambientOcclusion);
+            s.motionBlur = j.GetBool("motionBlur", d.motionBlur);
+            s.vignette = j.GetBool("vignette", d.vignette);
+            s.filmGrain = j.GetBool("grain", d.filmGrain);
+            s.reflections = j.GetBool("reflections", d.reflections);
+            s.hdr = j.GetBool("hdr", d.hdr);
+            s.vSync = j.GetBool("vsync", d.vSync);
+            s.particleDensity = j.GetFloat("particles", d.particleDensity);
+            s.chaseDistance = j.GetFloat("camDist", d.chaseDistance);
+            s.chaseHeight = j.GetFloat("camHeight", d.chaseHeight);
+            s.cameraShake = j.GetFloat("shake", d.cameraShake);
+            s.driftLook = j.GetFloat("driftLook", d.driftLook);
+            s.steeringLinearity = j.GetFloat("linearity", d.steeringLinearity);
+            s.handbrakeToggle = j.GetBool("hbToggle", d.handbrakeToggle);
+            s.hudOpacity = j.GetFloat("hudOpacity", d.hudOpacity);
+            s.showScore = j.GetBool("hudScore", d.showScore);
+            s.showTireDiagram = j.GetBool("hudTires", d.showTireDiagram);
+            s.showAngleMeter = j.GetBool("hudAngle", d.showAngleMeter);
+            s.showHudButtons = j.GetBool("hudButtons", d.showHudButtons);
+            s.reduceMotion = j.GetBool("reduceMotion", d.reduceMotion);
+            s.colorblindHud = j.GetBool("colorblind", d.colorblindHud);
+            s.tiresVolume = j.GetFloat("tiresVol", d.tiresVolume);
+            s.uiVolume = j.GetFloat("uiVol", d.uiVolume);
             s.Sanitize();
             return s;
         }
@@ -253,7 +368,39 @@ namespace DriftCareer.Core.Persistence
                 .Set("id", p.profileId).Set("created", p.createdUtc).Set("vehicle", p.selectedVehicleId)
                 .Set("tunings", tunings).Set("setups", setups).Set("drills", drills)
                 .Set("totalPoints", p.totalDriftPoints).Set("bestChain", p.bestChain).Set("distanceKm", p.distanceDrivenKm)
-                .Set("playTime", p.playTimeSec).Set("lastLayout", p.lastLayoutName ?? "").Set("customVehicles", customs);
+                .Set("playTime", p.playTimeSec).Set("lastLayout", p.lastLayoutName ?? "").Set("customVehicles", customs)
+                .Set("credits", JsonValue.Number((double)p.wallet.credits)).Set("earned", JsonValue.Number((double)p.wallet.lifetimeEarned))
+                .Set("owned", StringArray(p.ownedItems)).Set("vehicles", StringArray(p.ownedVehicles))
+                .Set("challenges", EncodeChallenges(p)).Set("best", EncodeFloats(p.bestScores)).Set("medals", EncodeInts(p.bestMedals));
+        }
+
+        private static JsonValue StringArray(IEnumerable<string> items)
+        {
+            var a = JsonValue.NewArray();
+            foreach (var i in items) a.Add(JsonValue.String(i));
+            return a;
+        }
+
+        private static JsonValue EncodeFloats(Dictionary<string, float> d)
+        {
+            var o = JsonValue.NewObject();
+            foreach (var kv in d) o.Set(kv.Key, kv.Value);
+            return o;
+        }
+
+        private static JsonValue EncodeInts(Dictionary<string, int> d)
+        {
+            var o = JsonValue.NewObject();
+            foreach (var kv in d) o.Set(kv.Key, kv.Value);
+            return o;
+        }
+
+        private static JsonValue EncodeChallenges(PlayerProfile p)
+        {
+            var o = JsonValue.NewObject();
+            foreach (var c in p.challenges.Values)
+                o.Set(c.id, JsonValue.NewObject().Set("v", c.value).Set("done", c.completed).Set("claimed", c.claimed).Set("day", c.dayKey ?? ""));
+            return o;
         }
 
         public PlayerProfile Decode(JsonValue j, int version)
@@ -291,6 +438,31 @@ namespace DriftCareer.Core.Persistence
             if (customs != null)
                 foreach (var c in customs.Items)
                     if (c.Type == JsonType.String) p.customVehicleIds.Add(c.AsString);
+            var credits = j["credits"];
+            if (credits != null && credits.Type == JsonType.Number) p.wallet.credits = (long)Math.Max(0, Math.Min(1e12, credits.AsDouble));
+            var earned = j["earned"];
+            if (earned != null && earned.Type == JsonType.Number) p.wallet.lifetimeEarned = (long)Math.Max(0, Math.Min(1e13, earned.AsDouble));
+            var owned = j.GetArray("owned");
+            if (owned != null) foreach (var o in owned.Items) if (o.Type == JsonType.String && p.ownedItems.Count < 5000) p.ownedItems.Add(o.AsString);
+            var vehicles = j.GetArray("vehicles");
+            if (vehicles != null)
+            {
+                p.ownedVehicles.Clear();
+                foreach (var v in vehicles.Items) if (v.Type == JsonType.String && !p.ownedVehicles.Contains(v.AsString)) p.ownedVehicles.Add(v.AsString);
+                if (!p.ownedVehicles.Contains("placeholder_rwd")) p.ownedVehicles.Add("placeholder_rwd");
+            }
+            var ch = j.GetObject("challenges");
+            if (ch != null)
+                foreach (var k in ch.Keys)
+                {
+                    var c = ch[k];
+                    if (!c.IsObject) continue;
+                    p.challenges[k] = new ChallengeProgress { id = k, value = c.GetFloat("v"), completed = c.GetBool("done"), claimed = c.GetBool("claimed"), dayKey = c.GetString("day", "") };
+                }
+            var best = j.GetObject("best");
+            if (best != null) foreach (var k in best.Keys) p.bestScores[k] = MathUtil.Max(0f, best.GetFloat(k));
+            var medals = j.GetObject("medals");
+            if (medals != null) foreach (var k in medals.Keys) p.bestMedals[k] = MathUtil.Clamp(medals.GetInt(k), 0, 3);
             return p;
         }
     }

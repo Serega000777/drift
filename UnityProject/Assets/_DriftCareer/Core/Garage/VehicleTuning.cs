@@ -31,12 +31,28 @@ namespace DriftCareer.Core.Garage
         public float steeringLockDeg = 50f;
         public float ackermann = 0.3f;
 
-        // Tires
+        // Tires (width/profile change grip, response and the real rolling radius together with rim size)
         public TireCompound compoundFront = TireCompound.DriftSemiSlick;
         public TireCompound compoundRear = TireCompound.Sport;
         public float pressureFrontBar = 2.2f, pressureRearBar = 2.2f;
+        public float tireWidthFront = 225f, tireWidthRear = 225f;     // mm
+        public float tireAspectFront = 45f, tireAspectRear = 45f;     // %
+        /// <summary>Starting wear of fitted tires (used "budget" rubber common in korch builds).</summary>
+        public float usedTireWear;
 
-        // Engine
+        // Body widening: spacers / wide rims. Allowed range depends on the fender kit.
+        public float trackOffsetFront, trackOffsetRear;               // m per axle (total)
+
+        // Engine swap ("" = stock engine of the car)
+        public string engineSwapId = "";
+
+        // Korch / build items
+        public bool strippedInterior;
+        public bool rollCage;
+        public bool hydraulicHandbrake;
+        public bool batteryInTrunk;
+
+        // Engine tune
         public float powerScale = 1f;           // ECU/turbo stage
         public float limiterOffsetRpm;
         public float flywheelScale = 1f;        // engine inertia
@@ -126,6 +142,8 @@ namespace DriftCareer.Core.Garage
             // Tires: compound, pressure, camber.
             ApplyTire(p.front.tire, t.compoundFront, t.pressureFrontBar, t.camberFrontDeg, true);
             ApplyTire(p.rear.tire, t.compoundRear, t.pressureRearBar, t.camberRearDeg, false);
+            ApplyTireSize(p.front, t.tireWidthFront, t.tireAspectFront, t.visual.rimSizeInch);
+            ApplyTireSize(p.rear, t.tireWidthRear, t.tireAspectRear, t.visual.rimSizeInch);
             p.front.staticToeDeg = t.toeFrontDeg;
             p.rear.staticToeDeg = t.toeRearDeg;
 
@@ -133,7 +151,38 @@ namespace DriftCareer.Core.Garage
             p.steering.maxAngleDeg = t.steeringLockDeg;
             p.steering.ackermann = t.ackermann;
 
-            // Engine
+            // Engine swap: new curve/redline, mass and weight distribution change with the swap mass.
+            var swap = EngineCatalog.Find(t.engineSwapId);
+            if (swap != null)
+            {
+                p.engine.torqueCurve = swap.TorqueCurve();
+                p.engine.redlineRpm = swap.redlineRpm;
+                p.engine.limiterRpm = swap.redlineRpm + 300f;
+                p.transmission.autoUpshiftRpm = swap.redlineRpm - 200f;
+                p.transmission.autoDownshiftRpm = MathUtil.Max(2200f, swap.torqueRpm * 0.6f);
+                p.engine.inertia = swap.layout == "I6" ? 0.26f : (swap.layout == "R2" ? 0.14f : 0.18f);
+                float delta = swap.swapMassKg - baseProfile.engine.swapMassKg;
+                float oldMass = p.chassis.massKg;
+                float front = p.chassis.frontWeightFraction * oldMass + delta * 0.95f;
+                p.chassis.massKg = oldMass + delta;
+                p.chassis.frontWeightFraction = MathUtil.Clamp(front / p.chassis.massKg, 0.35f, 0.7f);
+            }
+
+            // Build items.
+            if (t.strippedInterior) p.chassis.massKg -= 70f;
+            if (t.rollCage) { p.chassis.massKg += 40f; p.chassis.cgHeight += 0.01f; }
+            if (t.batteryInTrunk)
+            {
+                float m = p.chassis.massKg;
+                p.chassis.frontWeightFraction = MathUtil.Clamp((p.chassis.frontWeightFraction * m - 18f) / m, 0.35f, 0.7f);
+            }
+            if (t.hydraulicHandbrake) p.brakes.handbrakeTorqueNm *= 1.8f;
+
+            // Body widening (validated against the fender kit in Sanitize).
+            p.front.trackWidth += t.trackOffsetFront;
+            p.rear.trackWidth += t.trackOffsetRear;
+
+            // Engine tune
             var curve = p.engine.torqueCurve.Clone();
             for (int i = 0; i < curve.keys.Count; i++)
                 curve.keys[i] = new CurveKey(curve.keys[i].x, curve.keys[i].y * t.powerScale);
@@ -192,6 +241,30 @@ namespace DriftCareer.Core.Garage
             a.suspension.travel = MathUtil.Max(0.08f, a.suspension.travel + rideOffset);
         }
 
+        /// <summary>Rolling radius from rim + sidewall; wider tires gain grip with diminishing returns and less load sensitivity.</summary>
+        public static void ApplyTireSize(AxleSpec a, float widthMm, float aspect, float rimInch)
+        {
+            float radius = (rimInch * 25.4f * 0.5f + widthMm * aspect / 100f) / 1000f;
+            a.wheelRadius = MathUtil.Clamp(radius, 0.22f, 0.45f);
+            float wScale = widthMm / 225f;
+            float grip = (float)Math.Pow(wScale, 0.22);
+            a.tire.peakFrictionLat *= grip;
+            a.tire.peakFrictionLong *= grip;
+            a.tire.loadSensitivity = MathUtil.Clamp(a.tire.loadSensitivity / MathUtil.Max(0.6f, wScale), 0.03f, 0.3f);
+            a.tire.rollingResistance *= 0.85f + 0.15f * wScale;
+            // Low profile = stiffer sidewall = earlier, crisper peak.
+            a.tire.peakSlipAngleDeg = MathUtil.Clamp(a.tire.peakSlipAngleDeg * (0.8f + aspect / 225f), 3f, 20f);
+            a.wheelInertia = MathUtil.Clamp(0.9f + (wScale - 1f) * 0.4f + (rimInch - 17f) * 0.08f, 0.5f, 3f);
+        }
+
+        /// <summary>Maximum extra track width allowed by the fitted fender kit (m).</summary>
+        public static float MaxTrackOffset(VisualSetup v)
+        {
+            var fender = VisualPartCatalog.Find(v?.PartFor(PartSlot.Fenders));
+            int style = fender?.style ?? 0;
+            return style == 2 ? 0.09f : (style == 1 ? 0.05f : 0.02f);
+        }
+
         private static void ApplyTire(TireSpec tire, TireCompound compound, float pressureBar, float camberDeg, bool front)
         {
             tire.compound = compound;
@@ -221,6 +294,10 @@ namespace DriftCareer.Core.Garage
                     }
             }
             c.visual = VisualPartCatalog.Sanitize(c.visual);
+            float maxTrack = MaxTrackOffset(c.visual);
+            c.trackOffsetFront = MathUtil.Clamp(MathUtil.Finite(c.trackOffsetFront), 0f, maxTrack);
+            c.trackOffsetRear = MathUtil.Clamp(MathUtil.Finite(c.trackOffsetRear), 0f, maxTrack);
+            if (!string.IsNullOrEmpty(c.engineSwapId) && EngineCatalog.Find(c.engineSwapId) == null) c.engineSwapId = "";
             if (!Enum.IsDefined(typeof(DifferentialType), c.diffType)) c.diffType = DifferentialType.Lsd;
             if (!Enum.IsDefined(typeof(TireCompound), c.compoundFront)) c.compoundFront = TireCompound.Sport;
             if (!Enum.IsDefined(typeof(TireCompound), c.compoundRear)) c.compoundRear = TireCompound.Sport;
@@ -278,6 +355,13 @@ namespace DriftCareer.Core.Garage
 
                 P("pressure_front", TuningGroup.Tires, "bar", 1.4f, 3f, 0.05f, s => s.pressureFrontBar, (s, v) => s.pressureFrontBar = v),
                 P("pressure_rear", TuningGroup.Tires, "bar", 1.4f, 3f, 0.05f, s => s.pressureRearBar, (s, v) => s.pressureRearBar = v),
+                P("tire_width_front", TuningGroup.Tires, "mm", 155f, 295f, 10f, s => s.tireWidthFront, (s, v) => s.tireWidthFront = v),
+                P("tire_width_rear", TuningGroup.Tires, "mm", 155f, 315f, 10f, s => s.tireWidthRear, (s, v) => s.tireWidthRear = v),
+                P("tire_aspect_front", TuningGroup.Tires, "%", 30f, 80f, 5f, s => s.tireAspectFront, (s, v) => s.tireAspectFront = v),
+                P("tire_aspect_rear", TuningGroup.Tires, "%", 30f, 80f, 5f, s => s.tireAspectRear, (s, v) => s.tireAspectRear = v),
+                P("used_tire_wear", TuningGroup.Tires, "%", 0f, 0.8f, 0.05f, s => s.usedTireWear, (s, v) => s.usedTireWear = v),
+                P("track_front", TuningGroup.Suspension, "mm", 0f, 0.09f, 0.005f, s => s.trackOffsetFront, (s, v) => s.trackOffsetFront = v),
+                P("track_rear", TuningGroup.Suspension, "mm", 0f, 0.09f, 0.005f, s => s.trackOffsetRear, (s, v) => s.trackOffsetRear = v),
 
                 P("power", TuningGroup.Engine, "x", 0.7f, 2f, 0.05f, s => s.powerScale, (s, v) => s.powerScale = v),
                 P("limiter", TuningGroup.Engine, "rpm", 0f, 1200f, 50f, s => s.limiterOffsetRpm, (s, v) => s.limiterOffsetRpm = v),
@@ -316,7 +400,7 @@ namespace DriftCareer.Core.Garage
     /// <summary>Ready-made setups so players can start from something sensible.</summary>
     public static class TuningPresets
     {
-        public static readonly string[] Ids = { "stock", "street_drift", "pro_drift", "grip", "winter" };
+        public static readonly string[] Ids = { "stock", "street_drift", "pro_drift", "grip", "winter", "korch" };
 
         public static VehicleTuningState Create(string id, string vehicleId = "placeholder_rwd")
         {
@@ -342,6 +426,8 @@ namespace DriftCareer.Core.Garage
                     t.steeringLockDeg = 40f; t.ackermann = 0.7f; t.diffPowerLock = 0.4f; t.diffCoastLock = 0.2f;
                     t.compoundFront = TireCompound.DriftSemiSlick; t.compoundRear = TireCompound.DriftSemiSlick; t.downforceScale = 2.5f;
                     break;
+                case "korch":
+                    return KorchBuilder.Apply(t);
                 case "winter":
                     t.rideHeightOffset = 0.02f; t.springFront = 0.8f; t.springRear = 0.8f; t.compoundFront = TireCompound.Studded;
                     t.compoundRear = TireCompound.Studded; t.diffType = DifferentialType.Lsd; t.diffPowerLock = 0.5f; t.powerScale = 0.9f;

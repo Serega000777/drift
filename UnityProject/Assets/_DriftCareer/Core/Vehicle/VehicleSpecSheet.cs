@@ -19,6 +19,11 @@ namespace DriftCareer.Core.Vehicle
         public SpecSource source = SpecSource.Manual;
         /// <summary>0..1 confidence when values were suggested by an AI service.</summary>
         public float confidence = 1f;
+        /// <summary>Real-world reference (e.g. which production car the numbers describe) and where they come from.</summary>
+        public string referenceNote = "";
+        /// <summary>Engine + gearbox mass (kg), used for swaps. 0 = estimate from displacement.</summary>
+        public float engineMassKg;
+        public float displacementL = 2f;
 
         public DriveLayout layout = DriveLayout.Rwd;
         public float curbMassKg = 1300f;
@@ -149,6 +154,7 @@ namespace DriftCareer.Core.Vehicle
             p.transmission.gearRatios = s.gearRatios != null && s.gearRatios.Length >= 3 ? (float[])s.gearRatios.Clone() : SynthesizeRatios(s.gearCount);
             p.transmission.finalDrive = s.finalDrive > 1f ? s.finalDrive : EstimateFinalDrive(p, s);
             p.transmission.clutchMaxTorque = MathUtil.Max(300f, s.peakTorqueNm * 1.7f);
+            p.engine.swapMassKg = s.engineMassKg > 0f ? s.engineMassKg : MathUtil.Clamp(90f + 60f * s.displacementL, 120f, 400f);
             p.brakes.maxTorqueNm = mass * 4.2f;
             p.aero.dragArea = MathUtil.Clamp(0.32f * p.chassis.width * p.chassis.height * 0.85f, 0.45f, 1.2f);
             return p;
@@ -193,16 +199,41 @@ namespace DriftCareer.Core.Vehicle
     /// <summary>Brand-free archetype templates (no trademarks). Real-model data needs a licensed source.</summary>
     public static class SpecTemplates
     {
-        public static readonly string[] Ids = { "jdm_coupe_turbo", "euro_i6_sedan", "rotary_coupe", "v8_muscle", "hot_hatch_fwd", "awd_rally_sedan", "kei_roadster" };
+        public static readonly string[] Ids = { "classic_sedan_12", "classic_sedan_16", "classic_sedan_15_5mt", "jdm_coupe_turbo", "euro_i6_sedan", "rotary_coupe", "v8_muscle", "hot_hatch_fwd", "awd_rally_sedan", "kei_roadster" };
 
         public static VehicleSpecSheet Create(string id)
         {
             var s = new VehicleSpecSheet { source = SpecSource.Template, displayName = id };
             switch (id)
             {
+                // Soviet classic RWD sedans (numbers per open catalog listings; see EngineCatalog sources). Brand names are
+                // kept in referenceNote only - not shown in release UI without a licence.
+                case "classic_sedan_12":
+                    s.curbMassKg = 955f; s.frontWeightFraction = 0.53f; s.peakPowerKw = 64f * 0.7355f; s.peakPowerRpm = 5600f; s.peakTorqueNm = 87f; s.peakTorqueRpm = 3400f;
+                    s.redlineRpm = 6200f; s.gearCount = 4; s.gearRatios = new[] { 3.753f, 2.303f, 1.493f, 1f }; s.finalDrive = 4.3f;
+                    s.wheelbaseM = 2.424f; s.trackFrontM = 1.349f; s.trackRearM = 1.305f; s.lengthM = 4.073f; s.widthM = 1.611f; s.heightM = 1.44f;
+                    s.tireSizeFront = "155/80R13"; s.tireSizeRear = "155/80R13"; s.engineMassKg = 150f; s.displacementL = 1.198f;
+                    s.referenceNote = "VAZ-2101 class (1198 cc, 64 hp, 4MT, RWD) - open catalog data, approximate";
+                    break;
+                case "classic_sedan_16":
+                    s.curbMassKg = 1035f; s.frontWeightFraction = 0.53f; s.peakPowerKw = 80f * 0.7355f; s.peakPowerRpm = 5400f; s.peakTorqueNm = 121f; s.peakTorqueRpm = 3000f;
+                    s.redlineRpm = 6000f; s.gearCount = 4; s.gearRatios = new[] { 3.67f, 2.1f, 1.36f, 1f }; s.finalDrive = 3.9f;
+                    s.wheelbaseM = 2.424f; s.trackFrontM = 1.365f; s.trackRearM = 1.321f; s.lengthM = 4.166f; s.widthM = 1.611f; s.heightM = 1.44f;
+                    s.tireSizeFront = "175/70R13"; s.tireSizeRear = "175/70R13"; s.engineMassKg = 155f; s.displacementL = 1.568f;
+                    s.referenceNote = "VAZ-2106 class (1568 cc, 80 hp, 4MT, RWD) - open catalog data, approximate";
+                    break;
+                case "classic_sedan_15_5mt":
+                    s.curbMassKg = 1030f; s.frontWeightFraction = 0.53f; s.peakPowerKw = 77f * 0.7355f; s.peakPowerRpm = 5600f; s.peakTorqueNm = 106f; s.peakTorqueRpm = 3500f;
+                    s.redlineRpm = 6200f; s.gearCount = 5; s.gearRatios = new[] { 3.67f, 2.1f, 1.36f, 1f, 0.82f }; s.finalDrive = 4.1f;
+                    s.wheelbaseM = 2.424f; s.trackFrontM = 1.365f; s.trackRearM = 1.321f; s.lengthM = 4.145f; s.widthM = 1.62f; s.heightM = 1.44f;
+                    s.tireSizeFront = "175/70R13"; s.tireSizeRear = "175/70R13"; s.engineMassKg = 152f; s.displacementL = 1.451f;
+                    s.referenceNote = "VAZ-2107 class with 1.5 NA (1451 cc, 77 hp, 5MT, RWD) - open catalog data, approximate";
+                    break;
                 case "jdm_coupe_turbo":
                     s.curbMassKg = 1240f; s.frontWeightFraction = 0.55f; s.peakPowerKw = 184f; s.peakPowerRpm = 6400f; s.peakTorqueNm = 275f; s.peakTorqueRpm = 4000f;
-                    s.redlineRpm = 7200f; s.turbo = true; s.gearCount = 6; s.wheelbaseM = 2.525f; s.tireSizeFront = "215/45R17"; s.tireSizeRear = "225/45R17";
+                    s.redlineRpm = 7200f; s.turbo = true; s.gearCount = 5; s.wheelbaseM = 2.475f; s.tireSizeFront = "205/60R15"; s.tireSizeRear = "205/60R15";
+                    s.engineMassKg = 220f; s.displacementL = 1.998f; s.lengthM = 4.52f; s.widthM = 1.69f; s.heightM = 1.29f;
+                    s.referenceNote = "S13-class coupe with SR20DET-class turbo I4 (approximate)";
                     break;
                 case "euro_i6_sedan":
                     s.curbMassKg = 1430f; s.frontWeightFraction = 0.51f; s.peakPowerKw = 170f; s.peakPowerRpm = 6000f; s.peakTorqueNm = 300f; s.peakTorqueRpm = 3500f;

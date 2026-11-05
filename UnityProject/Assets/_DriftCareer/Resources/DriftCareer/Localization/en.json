@@ -1,4 +1,21 @@
 {
+  "challenge": {
+    "ChainScore": "A chain worth {0} points",
+    "CleanRun": "Drive {0} s without hits",
+    "DriftDistance": "Drift for {0} m",
+    "DrillComplete": "Complete the drill",
+    "HoldAngle": "Hold {1}° of angle for {0} s",
+    "RunScore": "Score {0} points in one run",
+    "Transitions": "Do {0} transitions"
+  },
+  "challenges": {
+    "claim": "Claim {0} CR",
+    "claimed": "Claimed",
+    "daily": "Daily",
+    "permanent": "Permanent",
+    "progress": "{0} / {1}",
+    "title": "Challenges"
+  },
   "common": {
     "apply": "Apply",
     "back": "Back",
@@ -91,11 +108,34 @@
       "spawn": "spawn point"
     }
   },
+  "engine": {
+    "classic_i4_12": "I4 1.2 NA",
+    "classic_i4_13": "I4 1.3 NA",
+    "classic_i4_15": "I4 1.5 NA",
+    "classic_i4_16": "I4 1.6 NA",
+    "classic_i4_17_bored": "I4 1.7 NA (bored)",
+    "jdm_i4_16_na": "I4 1.6 NA 16V high-rev",
+    "jdm_i4_18_turbo": "I4 1.8 turbo",
+    "jdm_i4_20_turbo": "I4 2.0 turbo",
+    "jdm_i6_25_jz": "I6 2.5 twin-turbo (JZ class)",
+    "jdm_i6_25_turbo": "I6 2.5 turbo",
+    "jdm_i6_26_twin": "I6 2.6 twin-turbo",
+    "jdm_i6_30_jz": "I6 3.0 twin-turbo (JZ class)",
+    "jdm_rotary_13_turbo": "Rotary 1.3 twin-turbo"
+  },
   "garage": {
+    "apply_free": "Apply",
+    "buy_apply": "Buy & apply ({0} CR)",
+    "buy_car": "Buy ({0} CR)",
     "calculating": "Calculating…",
     "caliper": "Calipers",
     "compare": "Before → after",
     "computed_note": "Numbers come from running the physics model, not from a lookup table.",
+    "confidence": {
+      "approximate": "approximate data",
+      "verified": "data checked against a source"
+    },
+    "engine_stock": "Stock engine",
     "finish": {
       "Chrome": "Chrome",
       "Gloss": "Gloss",
@@ -105,21 +145,35 @@
       "Satin": "Satin"
     },
     "finish_label": "Finish",
+    "kit": {
+      "battery": "Battery in trunk",
+      "cage": "Roll cage (+40 kg)",
+      "hydro": "Hydraulic handbrake",
+      "stripped": "Stripped interior (−70 kg)"
+    },
+    "korch_desc": "Swap, welded diff, angle kit, hydro handbrake, coilovers, stripped interior, cage, used rear tires and primer. Works on any car.",
+    "make_korch": "Make it a korch",
     "my_setups": "My setups",
+    "not_enough": "Not enough credits",
+    "owned": "Owned",
     "paint": "Body color",
     "presets": "Presets",
+    "price": "{0} CR",
     "rating": {
       "acceleration": "Acceleration",
       "braking": "Braking",
       "drift": "Drift",
       "grip": "Grip"
     },
+    "reference": "Reference: {0}",
     "reset_stock": "Reset to stock",
     "rim_color": "Rim color",
     "rim_size": "Rim size",
     "save_setup": "Save setup",
     "saved": "Setup saved",
     "secondary": "Secondary color",
+    "select_car": "Select",
+    "selected": "Selected",
     "setup_name": "Setup name",
     "slot": {
       "Fenders": "Fenders",
@@ -143,7 +197,11 @@
       "weight_dist": "Weight distribution",
       "zero100": "0–100 km/h"
     },
+    "swap_mass": "Engine + gearbox mass: {0} kg",
     "tab": {
+      "build": "Build",
+      "cars": "Cars",
+      "engine": "Engine & swaps",
       "performance": "Performance",
       "setups": "Setups",
       "stats": "Specs",
@@ -151,6 +209,7 @@
     },
     "test_drive": "Test drive",
     "tint": "Window tint",
+    "tire_info": "Tires: {0}/{1} R{2} · radius {3} mm",
     "title": "Garage",
     "underglow": "Underglow"
   },
@@ -166,22 +225,31 @@
       "offtrack": "Off track — chain lost",
       "spin": "Spin — chain lost"
     },
+    "challenge_done": "Challenge complete: +{0} CR",
     "combo": "Combo",
+    "credits": "{0} CR",
     "damage": "Damage",
     "drift": "DRIFT",
     "drill_done": "Drill complete!",
     "editor": "Editor",
+    "ghost_none": "No ghost yet — finish a Score Attack run and it becomes your ghost",
+    "go": "GO!",
     "handbrake": "Handbrake",
     "integrity": "Body",
+    "new_record": "New record!",
     "pause": "Pause",
     "puncture": "Puncture",
     "reset": "Reset",
+    "result": "Result",
+    "reward": "+{0} CR",
     "score": "Score",
     "shift_down": "−",
     "shift_up": "+",
     "start_engine": "Throttle — start and go",
+    "tandem": "Tandem {0}",
     "telemetry": "Telemetry",
     "throttle": "Throttle",
+    "time": "Time",
     "tire_blown": "Tire blown!",
     "tires": "Tires",
     "total": "Total",
@@ -200,6 +268,7 @@
   },
   "main": {
     "best_chain": "Best chain",
+    "credits": "Credits",
     "hint_nav": "← → select   Enter — open   Esc — back",
     "press_start": "Press to start",
     "profile_points": "Drift points",
@@ -212,6 +281,12 @@
     "tagline": "Your drift career starts here",
     "version": "Prototype"
   },
+  "medal": {
+    "Bronze": "Bronze",
+    "Gold": "Gold",
+    "None": "No medal",
+    "Silver": "Silver"
+  },
   "menu": {
     "academy": {
       "desc": "Drive out of the hangar and practice.",
@@ -220,6 +295,14 @@
     "career": {
       "desc": "From rookie to pro.",
       "title": "Career"
+    },
+    "challenges": {
+      "desc": "Tasks that pay credits: daily and permanent.",
+      "title": "Challenges"
+    },
+    "clipping_attack": {
+      "desc": "Closer to the points — more score.",
+      "title": "Clipping Attack"
     },
     "community": {
       "desc": "Player tracks and layouts.",
@@ -237,6 +320,14 @@
       "desc": "Tune suspension, engine, gearbox, weight and looks.",
       "title": "Garage & Tuning"
     },
+    "ghost_tandem": {
+      "desc": "Tandem with your own or someone else's recorded run.",
+      "title": "Ghost Tandem"
+    },
+    "gymkhana": {
+      "desc": "Linked moves around obstacles.",
+      "title": "Gymkhana"
+    },
     "jp_circuits": {
       "desc": "Under licence.",
       "title": "Japanese Circuits"
@@ -253,6 +344,10 @@
       "desc": "In partnership with organisers.",
       "title": "Pro Series"
     },
+    "score_attack": {
+      "desc": "90 seconds — max points.",
+      "title": "Score Attack"
+    },
     "settings": {
       "desc": "Controls, assists, graphics, audio.",
       "title": "Settings"
@@ -264,6 +359,10 @@
     "touge": {
       "desc": "Japanese-style mountain road.",
       "title": "Mountain Pass"
+    },
+    "tournament": {
+      "desc": "A three-round tournament.",
+      "title": "Academy Cup"
     },
     "training": {
       "desc": "Donuts, figure eights, slalom.",
@@ -279,6 +378,10 @@
       "desc": "From Academy rookie to pro leagues.",
       "title": "Career"
     },
+    "clipping_attack": {
+      "desc": "Points for drifting close to clipping points.",
+      "title": "Clipping Attack"
+    },
     "community_tracks": {
       "desc": "Tracks and layouts made by players.",
       "title": "Community Tracks"
@@ -286,6 +389,14 @@
     "free_drive": {
       "desc": "Drive the test ground freely.",
       "title": "Free Drive"
+    },
+    "ghost_tandem": {
+      "desc": "Chase a recorded run: gap, angle, line.",
+      "title": "Ghost Tandem"
+    },
+    "gymkhana": {
+      "desc": "Linked moves around cones and bollards against the clock.",
+      "title": "Gymkhana"
     },
     "layout_editor": {
       "desc": "Place cones, tires and barriers yourself.",
@@ -306,6 +417,10 @@
     "time_attack": {
       "desc": "A clean lap against the clock.",
       "title": "Time Attack"
+    },
+    "tournament_academy": {
+      "desc": "Three rounds, medals and prize credits.",
+      "title": "Academy Cup"
     },
     "training": {
       "desc": "Donuts, figure eights, slalom and clipping points.",
@@ -390,7 +505,32 @@
     "settings": "Settings",
     "title": "Paused"
   },
+  "results": {
+    "best": "Best: {0}",
+    "continue": "Continue",
+    "next_round": "Next round",
+    "retry": "Retry",
+    "score": "Score: {0}"
+  },
+  "run": {
+    "ClippingAttack": "Clipping attack",
+    "FreeDrive": "Free drive",
+    "GhostTandem": "Ghost tandem",
+    "Gymkhana": "Gymkhana",
+    "ScoreAttack": "Score attack",
+    "TournamentRound": "Tournament round",
+    "Training": "Training"
+  },
   "settings": {
+    "aa": {
+      "0": "Off",
+      "1": "FXAA",
+      "2": "SMAA",
+      "3": "MSAA 4x"
+    },
+    "aa_label": "Anti-aliasing",
+    "account": "Account",
+    "account_offline": "Local profile (account server not connected yet). Progress becomes shared across platforms after sign-in.",
     "assist": {
       "Assisted": "Assisted",
       "Balanced": "Balanced",
@@ -398,7 +538,12 @@
     },
     "assist_note": "Assists only change input (steering, throttle, brakes), never the car physics.",
     "assist_preset": "Assists",
+    "autorollout": "Auto roll-out from hangar",
+    "bloom": "Bloom",
     "blowouts": "Tire blowouts",
+    "cam_distance": "Camera distance",
+    "cam_height": "Camera height",
+    "cam_shake": "Camera shake",
     "camera": {
       "Bumper": "Bumper",
       "Chase": "Chase",
@@ -407,6 +552,7 @@
       "Hood": "Hood"
     },
     "camera_label": "Camera",
+    "colorblind": "Colorblind-friendly colors",
     "control_scheme": "Control scheme",
     "damage": {
       "Full": "Full",
@@ -415,16 +561,36 @@
     },
     "damage_label": "Damage",
     "deadzone": "Deadzone",
+    "drift_look": "Drift look-ahead",
     "engine": "Engine",
+    "film_grain": "Film grain",
     "fov": "Field of view",
-    "fps": "Frame rate",
+    "fps": {
+      "120": "120",
+      "30": "30",
+      "60": "60",
+      "90": "90"
+    },
+    "fps_label": "Frame rate",
+    "ghost": "Show ghost",
+    "hb_toggle": "Handbrake toggle",
+    "hdr": "HDR",
+    "hud_opacity": "HUD opacity",
     "hud_scale": "HUD scale",
     "intro": "Intro cinematic",
-    "language": "Language",
+    "language": {
+      "en": "English",
+      "ru": "Русский"
+    },
+    "language_label": "Language",
     "left_handed": "Left-handed layout",
+    "linearity": "Steering linearity",
     "manual": "Manual gearbox",
     "master": "Master volume",
+    "motion_blur": "Motion blur",
     "music": "Music",
+    "particles": "Smoke density",
+    "post": "Post-processing",
     "quality": {
       "Auto": "Auto",
       "High": "High",
@@ -433,6 +599,9 @@
       "Ultra": "Ultra"
     },
     "quality_label": "Quality",
+    "reduce_motion": "Reduce motion",
+    "reflections": "Reflections",
+    "render_scale": "Render scale",
     "scheme": {
       "Auto": "Auto",
       "Tilt": "Tilt",
@@ -441,20 +610,43 @@
       "TouchWheel": "Touch wheel"
     },
     "sfx": "Effects",
+    "shadow_distance": "Shadow distance",
+    "shadows": {
+      "0": "Off",
+      "1": "Low",
+      "2": "Medium",
+      "3": "High"
+    },
+    "shadows_label": "Shadows",
+    "show_angle": "Angle meter",
+    "show_buttons": "On-screen buttons",
+    "show_score": "Show score",
+    "show_tires": "Tire diagram",
+    "ssao": "Ambient occlusion",
     "steer_sens": "Steering sensitivity",
     "tab": {
       "assists": "Assists",
       "audio": "Audio",
+      "camera": "Camera",
       "controls": "Controls",
       "game": "Game",
-      "graphics": "Graphics"
+      "graphics": "Graphics",
+      "hud": "HUD"
     },
     "telemetry": "On-screen telemetry",
     "tilt_sens": "Tilt sensitivity",
     "tire_wear": "Tire wear",
+    "tires_volume": "Tires",
     "title": "Settings",
-    "units": "Units",
-    "vibration": "Vibration"
+    "ui_volume": "Interface",
+    "units": {
+      "Kmh": "km/h",
+      "Mph": "mph"
+    },
+    "units_label": "Units",
+    "vibration": "Vibration",
+    "vignette": "Vignette",
+    "vsync": "V-Sync"
   },
   "surface": {
     "concrete": "Concrete",
@@ -465,6 +657,14 @@
     "loose_snow": "Loose snow",
     "packed_snow": "Packed snow",
     "wet_asphalt": "Wet asphalt"
+  },
+  "tournament": {
+    "academy_cup": "Academy Cup",
+    "entry": "Entry {0} CR",
+    "prize": "Prize {0} CR",
+    "round": "Round {0}/{1}",
+    "start": "Start tournament",
+    "total": "Total: {0}"
   },
   "track": {
     "academy": {
@@ -568,10 +768,33 @@
     "spring_front": "Front springs",
     "spring_rear": "Rear springs",
     "steering_lock": "Steering lock",
+    "tire_aspect_front": "Front tire profile",
+    "tire_aspect_rear": "Rear tire profile",
+    "tire_width_front": "Front tire width",
+    "tire_width_rear": "Rear tire width",
     "toe_front": "Front toe",
-    "toe_rear": "Rear toe"
+    "toe_rear": "Rear toe",
+    "track_front": "Front track widening",
+    "track_rear": "Rear track widening",
+    "used_tire_wear": "Used tire wear"
   },
   "vehicle": {
+    "classic_sedan_12": {
+      "desc": "Soviet RWD sedan: 64 hp, 4 speeds. The perfect korch base.",
+      "title": "Classic 1.2"
+    },
+    "classic_sedan_15_5mt": {
+      "desc": "RWD sedan: 77 hp, 5 speeds.",
+      "title": "Classic 1.5 5MT"
+    },
+    "classic_sedan_16": {
+      "desc": "RWD sedan: 80 hp, 4 speeds.",
+      "title": "Classic 1.6"
+    },
+    "jdm_coupe_turbo": {
+      "desc": "Light coupe with a 2.0 turbo four.",
+      "title": "JDM Turbo Coupe"
+    },
     "placeholder_rwd": {
       "desc": "The Academy's rear-wheel-drive training car.",
       "title": "Prototype RWD"

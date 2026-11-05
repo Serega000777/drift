@@ -2,50 +2,567 @@
   "version": "1",
   "_comment": "Content catalog. status: Playable | ComingSoon | Hidden. ComingSoon entries are visible but can never launch. Real venues/series/brands need agreements before any branded name is shown (license: RequiresLicense).",
   "modes": [
-    { "id": "free_drive", "title": "mode.free_drive.title", "description": "mode.free_drive.desc", "status": "Playable", "order": 0, "rules": "free" },
-    { "id": "training", "title": "mode.training.title", "description": "mode.training.desc", "status": "Playable", "order": 1, "rules": "drills" },
-    { "id": "layout_editor", "title": "mode.layout_editor.title", "description": "mode.layout_editor.desc", "status": "Playable", "order": 2, "rules": "editor" },
-    { "id": "score_attack", "title": "mode.score_attack.title", "description": "mode.score_attack.desc", "status": "ComingSoon", "order": 3 },
-    { "id": "career", "title": "mode.career.title", "description": "mode.career.desc", "status": "ComingSoon", "order": 4 },
-    { "id": "time_attack", "title": "mode.time_attack.title", "description": "mode.time_attack.desc", "status": "ComingSoon", "order": 5 },
-    { "id": "tandem_ai", "title": "mode.tandem_ai.title", "description": "mode.tandem_ai.desc", "status": "ComingSoon", "order": 6 },
-    { "id": "online_tandem", "title": "mode.online_tandem.title", "description": "mode.online_tandem.desc", "status": "ComingSoon", "order": 7, "online": true },
-    { "id": "winter_league", "title": "mode.winter_league.title", "description": "mode.winter_league.desc", "status": "ComingSoon", "order": 8 },
-    { "id": "community_tracks", "title": "mode.community_tracks.title", "description": "mode.community_tracks.desc", "status": "ComingSoon", "order": 9, "online": true }
+    {
+      "id": "free_drive",
+      "title": "mode.free_drive.title",
+      "description": "mode.free_drive.desc",
+      "status": "Playable",
+      "order": 0,
+      "rules": "free"
+    },
+    {
+      "id": "training",
+      "title": "mode.training.title",
+      "description": "mode.training.desc",
+      "status": "Playable",
+      "order": 1,
+      "rules": "drills"
+    },
+    {
+      "id": "layout_editor",
+      "title": "mode.layout_editor.title",
+      "description": "mode.layout_editor.desc",
+      "status": "Playable",
+      "order": 2,
+      "rules": "editor"
+    },
+    {
+      "id": "score_attack",
+      "title": "mode.score_attack.title",
+      "description": "mode.score_attack.desc",
+      "status": "Playable",
+      "order": 3
+    },
+    {
+      "id": "career",
+      "title": "mode.career.title",
+      "description": "mode.career.desc",
+      "status": "ComingSoon",
+      "order": 4
+    },
+    {
+      "id": "time_attack",
+      "title": "mode.time_attack.title",
+      "description": "mode.time_attack.desc",
+      "status": "ComingSoon",
+      "order": 5
+    },
+    {
+      "id": "tandem_ai",
+      "title": "mode.tandem_ai.title",
+      "description": "mode.tandem_ai.desc",
+      "status": "ComingSoon",
+      "order": 6
+    },
+    {
+      "id": "online_tandem",
+      "title": "mode.online_tandem.title",
+      "description": "mode.online_tandem.desc",
+      "status": "ComingSoon",
+      "order": 7,
+      "online": true
+    },
+    {
+      "id": "winter_league",
+      "title": "mode.winter_league.title",
+      "description": "mode.winter_league.desc",
+      "status": "ComingSoon",
+      "order": 8
+    },
+    {
+      "id": "community_tracks",
+      "title": "mode.community_tracks.title",
+      "description": "mode.community_tracks.desc",
+      "status": "ComingSoon",
+      "order": 9,
+      "online": true
+    },
+    {
+      "id": "gymkhana",
+      "title": "mode.gymkhana.title",
+      "description": "mode.gymkhana.desc",
+      "status": "Playable",
+      "order": 10
+    },
+    {
+      "id": "clipping_attack",
+      "title": "mode.clipping_attack.title",
+      "description": "mode.clipping_attack.desc",
+      "status": "Playable",
+      "order": 11
+    },
+    {
+      "id": "ghost_tandem",
+      "title": "mode.ghost_tandem.title",
+      "description": "mode.ghost_tandem.desc",
+      "status": "Playable",
+      "order": 12
+    },
+    {
+      "id": "tournament_academy",
+      "title": "mode.tournament_academy.title",
+      "description": "mode.tournament_academy.desc",
+      "status": "Playable",
+      "order": 13
+    }
   ],
   "tracks": [
-    { "id": "academy", "family": "academy", "title": "track.academy.title", "description": "track.academy.desc", "status": "Playable", "order": 0,
-      "loader": "procedural:academy", "sizeMeters": 250, "layoutEditor": true, "environment": "day", "accent": "#E8322E",
-      "surfaces": ["dry_asphalt", "concrete"], "modes": ["free_drive", "training", "layout_editor", "score_attack"] },
-    { "id": "parking_night", "family": "parking", "title": "track.parking.title", "description": "track.parking.desc", "status": "ComingSoon", "order": 1, "environment": "night", "accent": "#7B61FF" },
-    { "id": "touge_original", "family": "touge", "title": "track.touge.title", "description": "track.touge.desc", "status": "ComingSoon", "order": 2, "environment": "dusk", "accent": "#FF8A00" },
-    { "id": "jp_circuits", "family": "jp_circuits", "title": "track.jp_circuits.title", "description": "track.jp_circuits.desc", "status": "ComingSoon", "license": "RequiresLicense", "order": 3, "accent": "#00B5D8" },
-    { "id": "pro_series", "family": "pro_series", "title": "track.pro_series.title", "description": "track.pro_series.desc", "status": "ComingSoon", "license": "RequiresLicense", "order": 4, "accent": "#F5C400" },
-    { "id": "winter_lake", "family": "winter", "title": "track.winter.title", "description": "track.winter.desc", "status": "ComingSoon", "order": 5, "environment": "winter", "accent": "#8FD3FF",
-      "surfaces": ["ice", "packed_snow", "loose_snow"] },
-    { "id": "city_industrial", "family": "original", "title": "track.city.title", "description": "track.city.desc", "status": "ComingSoon", "order": 6, "accent": "#A8E10C" },
-    { "id": "airfield", "family": "original", "title": "track.airfield.title", "description": "track.airfield.desc", "status": "ComingSoon", "order": 7, "accent": "#FF2D95" }
+    {
+      "id": "academy",
+      "family": "academy",
+      "title": "track.academy.title",
+      "description": "track.academy.desc",
+      "status": "Playable",
+      "order": 0,
+      "loader": "procedural:academy",
+      "sizeMeters": 250,
+      "layoutEditor": true,
+      "environment": "day",
+      "accent": "#E8322E",
+      "surfaces": [
+        "dry_asphalt",
+        "concrete"
+      ],
+      "modes": [
+        "free_drive",
+        "training",
+        "layout_editor",
+        "score_attack",
+        "gymkhana",
+        "clipping_attack",
+        "ghost_tandem",
+        "tournament_academy"
+      ]
+    },
+    {
+      "id": "parking_night",
+      "family": "parking",
+      "title": "track.parking.title",
+      "description": "track.parking.desc",
+      "status": "ComingSoon",
+      "order": 1,
+      "environment": "night",
+      "accent": "#7B61FF"
+    },
+    {
+      "id": "touge_original",
+      "family": "touge",
+      "title": "track.touge.title",
+      "description": "track.touge.desc",
+      "status": "ComingSoon",
+      "order": 2,
+      "environment": "dusk",
+      "accent": "#FF8A00"
+    },
+    {
+      "id": "jp_circuits",
+      "family": "jp_circuits",
+      "title": "track.jp_circuits.title",
+      "description": "track.jp_circuits.desc",
+      "status": "ComingSoon",
+      "license": "RequiresLicense",
+      "order": 3,
+      "accent": "#00B5D8"
+    },
+    {
+      "id": "pro_series",
+      "family": "pro_series",
+      "title": "track.pro_series.title",
+      "description": "track.pro_series.desc",
+      "status": "ComingSoon",
+      "license": "RequiresLicense",
+      "order": 4,
+      "accent": "#F5C400"
+    },
+    {
+      "id": "winter_lake",
+      "family": "winter",
+      "title": "track.winter.title",
+      "description": "track.winter.desc",
+      "status": "ComingSoon",
+      "order": 5,
+      "environment": "winter",
+      "accent": "#8FD3FF",
+      "surfaces": [
+        "ice",
+        "packed_snow",
+        "loose_snow"
+      ]
+    },
+    {
+      "id": "city_industrial",
+      "family": "original",
+      "title": "track.city.title",
+      "description": "track.city.desc",
+      "status": "ComingSoon",
+      "order": 6,
+      "accent": "#A8E10C"
+    },
+    {
+      "id": "airfield",
+      "family": "original",
+      "title": "track.airfield.title",
+      "description": "track.airfield.desc",
+      "status": "ComingSoon",
+      "order": 7,
+      "accent": "#FF2D95"
+    }
   ],
   "vehicles": [
-    { "id": "placeholder_rwd", "title": "vehicle.placeholder_rwd.title", "description": "vehicle.placeholder_rwd.desc", "status": "Playable", "order": 0,
-      "physics": "placeholder_rwd", "visual": "procedural:coupe", "license": "Original",
-      "tuningSlots": ["suspension", "alignment", "tires", "engine", "gearbox", "differential", "brakes", "weight", "aero", "visual"] }
+    {
+      "id": "placeholder_rwd",
+      "title": "vehicle.placeholder_rwd.title",
+      "description": "vehicle.placeholder_rwd.desc",
+      "status": "Playable",
+      "order": 0,
+      "physics": "placeholder_rwd",
+      "visual": "procedural:coupe",
+      "license": "Original",
+      "tuningSlots": [
+        "suspension",
+        "alignment",
+        "tires",
+        "engine",
+        "gearbox",
+        "differential",
+        "brakes",
+        "weight",
+        "aero",
+        "visual"
+      ]
+    },
+    {
+      "id": "classic_sedan_12",
+      "title": "vehicle.classic_sedan_12.title",
+      "description": "vehicle.classic_sedan_12.desc",
+      "status": "Playable",
+      "order": 1,
+      "physics": "spec:classic_sedan_12",
+      "visual": "procedural:sedan",
+      "license": "Original",
+      "tuningSlots": [
+        "suspension",
+        "alignment",
+        "tires",
+        "engine",
+        "gearbox",
+        "differential",
+        "brakes",
+        "weight",
+        "aero",
+        "visual"
+      ],
+      "tags": [
+        "reference-data-only"
+      ]
+    },
+    {
+      "id": "classic_sedan_16",
+      "title": "vehicle.classic_sedan_16.title",
+      "description": "vehicle.classic_sedan_16.desc",
+      "status": "Playable",
+      "order": 2,
+      "physics": "spec:classic_sedan_16",
+      "visual": "procedural:sedan",
+      "license": "Original",
+      "tuningSlots": [
+        "suspension",
+        "alignment",
+        "tires",
+        "engine",
+        "gearbox",
+        "differential",
+        "brakes",
+        "weight",
+        "aero",
+        "visual"
+      ],
+      "tags": [
+        "reference-data-only"
+      ]
+    },
+    {
+      "id": "classic_sedan_15_5mt",
+      "title": "vehicle.classic_sedan_15_5mt.title",
+      "description": "vehicle.classic_sedan_15_5mt.desc",
+      "status": "Playable",
+      "order": 3,
+      "physics": "spec:classic_sedan_15_5mt",
+      "visual": "procedural:sedan",
+      "license": "Original",
+      "tuningSlots": [
+        "suspension",
+        "alignment",
+        "tires",
+        "engine",
+        "gearbox",
+        "differential",
+        "brakes",
+        "weight",
+        "aero",
+        "visual"
+      ],
+      "tags": [
+        "reference-data-only"
+      ]
+    },
+    {
+      "id": "jdm_coupe_turbo",
+      "title": "vehicle.jdm_coupe_turbo.title",
+      "description": "vehicle.jdm_coupe_turbo.desc",
+      "status": "Playable",
+      "order": 4,
+      "physics": "spec:jdm_coupe_turbo",
+      "visual": "procedural:coupe",
+      "license": "Original",
+      "tuningSlots": [
+        "suspension",
+        "alignment",
+        "tires",
+        "engine",
+        "gearbox",
+        "differential",
+        "brakes",
+        "weight",
+        "aero",
+        "visual"
+      ],
+      "tags": [
+        "reference-data-only"
+      ]
+    }
   ],
   "menu": [
-    { "id": "menu.academy", "title": "menu.academy.title", "description": "menu.academy.desc", "status": "Playable", "order": 0, "targetKind": "Track", "target": "academy", "accent": "#E8322E", "icon": "track" },
-    { "id": "menu.training", "title": "menu.training.title", "description": "menu.training.desc", "status": "Playable", "order": 1, "targetKind": "Mode", "target": "training", "accent": "#FF5A36", "icon": "cone" },
-    { "id": "menu.garage", "title": "menu.garage.title", "description": "menu.garage.desc", "status": "Playable", "order": 2, "targetKind": "Screen", "target": "garage", "accent": "#00B5D8", "icon": "wrench" },
-    { "id": "menu.career", "title": "menu.career.title", "description": "menu.career.desc", "status": "ComingSoon", "order": 3, "targetKind": "Mode", "target": "career", "accent": "#F5C400", "icon": "trophy" },
-    { "id": "menu.touge", "title": "menu.touge.title", "description": "menu.touge.desc", "status": "ComingSoon", "order": 4, "targetKind": "Track", "target": "touge_original", "accent": "#FF8A00", "icon": "mountain" },
-    { "id": "menu.parking", "title": "menu.parking.title", "description": "menu.parking.desc", "status": "ComingSoon", "order": 5, "targetKind": "Track", "target": "parking_night", "accent": "#7B61FF", "icon": "parking" },
-    { "id": "menu.jp_circuits", "title": "menu.jp_circuits.title", "description": "menu.jp_circuits.desc", "status": "ComingSoon", "order": 6, "targetKind": "Track", "target": "jp_circuits", "accent": "#00B5D8", "icon": "flag" },
-    { "id": "menu.pro_series", "title": "menu.pro_series.title", "description": "menu.pro_series.desc", "status": "ComingSoon", "order": 7, "targetKind": "Track", "target": "pro_series", "accent": "#F5C400", "icon": "flag" },
-    { "id": "menu.winter", "title": "menu.winter.title", "description": "menu.winter.desc", "status": "ComingSoon", "order": 8, "targetKind": "Track", "target": "winter_lake", "accent": "#8FD3FF", "icon": "snow" },
-    { "id": "menu.tandem_ai", "title": "menu.tandem_ai.title", "description": "menu.tandem_ai.desc", "status": "ComingSoon", "order": 9, "targetKind": "Mode", "target": "tandem_ai", "accent": "#A8E10C", "icon": "tandem" },
-    { "id": "menu.online", "title": "menu.online.title", "description": "menu.online.desc", "status": "ComingSoon", "order": 10, "targetKind": "Mode", "target": "online_tandem", "accent": "#FF2D95", "icon": "globe" },
-    { "id": "menu.community", "title": "menu.community.title", "description": "menu.community.desc", "status": "ComingSoon", "order": 11, "targetKind": "Mode", "target": "community_tracks", "accent": "#7B61FF", "icon": "people" },
-    { "id": "menu.custom_cars", "title": "menu.custom_cars.title", "description": "menu.custom_cars.desc", "status": "ComingSoon", "order": 12, "targetKind": "Screen", "target": "custom_cars", "accent": "#00B5D8", "icon": "car" },
-    { "id": "menu.digital_twin", "title": "menu.digital_twin.title", "description": "menu.digital_twin.desc", "status": "ComingSoon", "order": 13, "targetKind": "Screen", "target": "digital_twin", "accent": "#F2F2F2", "icon": "scan" },
-    { "id": "menu.settings", "title": "menu.settings.title", "description": "menu.settings.desc", "status": "Playable", "order": 14, "targetKind": "Screen", "target": "settings", "accent": "#8C8C8C", "icon": "gear" }
+    {
+      "id": "menu.academy",
+      "title": "menu.academy.title",
+      "description": "menu.academy.desc",
+      "status": "Playable",
+      "order": 0,
+      "targetKind": "Track",
+      "target": "academy",
+      "accent": "#E8322E",
+      "icon": "track"
+    },
+    {
+      "id": "menu.training",
+      "title": "menu.training.title",
+      "description": "menu.training.desc",
+      "status": "Playable",
+      "order": 1,
+      "targetKind": "Mode",
+      "target": "training",
+      "accent": "#FF5A36",
+      "icon": "cone"
+    },
+    {
+      "id": "menu.score_attack",
+      "title": "menu.score_attack.title",
+      "description": "menu.score_attack.desc",
+      "status": "Playable",
+      "targetKind": "Mode",
+      "target": "score_attack",
+      "accent": "#FF2D55",
+      "icon": "timer",
+      "order": 2
+    },
+    {
+      "id": "menu.gymkhana",
+      "title": "menu.gymkhana.title",
+      "description": "menu.gymkhana.desc",
+      "status": "Playable",
+      "targetKind": "Mode",
+      "target": "gymkhana",
+      "accent": "#FF8A00",
+      "icon": "cone",
+      "order": 3
+    },
+    {
+      "id": "menu.clipping_attack",
+      "title": "menu.clipping_attack.title",
+      "description": "menu.clipping_attack.desc",
+      "status": "Playable",
+      "targetKind": "Mode",
+      "target": "clipping_attack",
+      "accent": "#00B5D8",
+      "icon": "clip",
+      "order": 4
+    },
+    {
+      "id": "menu.ghost_tandem",
+      "title": "menu.ghost_tandem.title",
+      "description": "menu.ghost_tandem.desc",
+      "status": "Playable",
+      "targetKind": "Mode",
+      "target": "ghost_tandem",
+      "accent": "#A8E10C",
+      "icon": "tandem",
+      "order": 5
+    },
+    {
+      "id": "menu.tournament",
+      "title": "menu.tournament.title",
+      "description": "menu.tournament.desc",
+      "status": "Playable",
+      "targetKind": "Mode",
+      "target": "tournament_academy",
+      "accent": "#F5C400",
+      "icon": "trophy",
+      "order": 6
+    },
+    {
+      "id": "menu.challenges",
+      "title": "menu.challenges.title",
+      "description": "menu.challenges.desc",
+      "status": "Playable",
+      "targetKind": "Screen",
+      "target": "challenges",
+      "accent": "#7B61FF",
+      "icon": "star",
+      "order": 7
+    },
+    {
+      "id": "menu.garage",
+      "title": "menu.garage.title",
+      "description": "menu.garage.desc",
+      "status": "Playable",
+      "order": 8,
+      "targetKind": "Screen",
+      "target": "garage",
+      "accent": "#00B5D8",
+      "icon": "wrench"
+    },
+    {
+      "id": "menu.career",
+      "title": "menu.career.title",
+      "description": "menu.career.desc",
+      "status": "ComingSoon",
+      "order": 9,
+      "targetKind": "Mode",
+      "target": "career",
+      "accent": "#F5C400",
+      "icon": "trophy"
+    },
+    {
+      "id": "menu.touge",
+      "title": "menu.touge.title",
+      "description": "menu.touge.desc",
+      "status": "ComingSoon",
+      "order": 10,
+      "targetKind": "Track",
+      "target": "touge_original",
+      "accent": "#FF8A00",
+      "icon": "mountain"
+    },
+    {
+      "id": "menu.parking",
+      "title": "menu.parking.title",
+      "description": "menu.parking.desc",
+      "status": "ComingSoon",
+      "order": 11,
+      "targetKind": "Track",
+      "target": "parking_night",
+      "accent": "#7B61FF",
+      "icon": "parking"
+    },
+    {
+      "id": "menu.jp_circuits",
+      "title": "menu.jp_circuits.title",
+      "description": "menu.jp_circuits.desc",
+      "status": "ComingSoon",
+      "order": 12,
+      "targetKind": "Track",
+      "target": "jp_circuits",
+      "accent": "#00B5D8",
+      "icon": "flag"
+    },
+    {
+      "id": "menu.pro_series",
+      "title": "menu.pro_series.title",
+      "description": "menu.pro_series.desc",
+      "status": "ComingSoon",
+      "order": 13,
+      "targetKind": "Track",
+      "target": "pro_series",
+      "accent": "#F5C400",
+      "icon": "flag"
+    },
+    {
+      "id": "menu.winter",
+      "title": "menu.winter.title",
+      "description": "menu.winter.desc",
+      "status": "ComingSoon",
+      "order": 14,
+      "targetKind": "Track",
+      "target": "winter_lake",
+      "accent": "#8FD3FF",
+      "icon": "snow"
+    },
+    {
+      "id": "menu.tandem_ai",
+      "title": "menu.tandem_ai.title",
+      "description": "menu.tandem_ai.desc",
+      "status": "ComingSoon",
+      "order": 15,
+      "targetKind": "Mode",
+      "target": "tandem_ai",
+      "accent": "#A8E10C",
+      "icon": "tandem"
+    },
+    {
+      "id": "menu.online",
+      "title": "menu.online.title",
+      "description": "menu.online.desc",
+      "status": "ComingSoon",
+      "order": 16,
+      "targetKind": "Mode",
+      "target": "online_tandem",
+      "accent": "#FF2D95",
+      "icon": "globe"
+    },
+    {
+      "id": "menu.community",
+      "title": "menu.community.title",
+      "description": "menu.community.desc",
+      "status": "ComingSoon",
+      "order": 17,
+      "targetKind": "Mode",
+      "target": "community_tracks",
+      "accent": "#7B61FF",
+      "icon": "people"
+    },
+    {
+      "id": "menu.custom_cars",
+      "title": "menu.custom_cars.title",
+      "description": "menu.custom_cars.desc",
+      "status": "ComingSoon",
+      "order": 18,
+      "targetKind": "Screen",
+      "target": "custom_cars",
+      "accent": "#00B5D8",
+      "icon": "car"
+    },
+    {
+      "id": "menu.digital_twin",
+      "title": "menu.digital_twin.title",
+      "description": "menu.digital_twin.desc",
+      "status": "ComingSoon",
+      "order": 19,
+      "targetKind": "Screen",
+      "target": "digital_twin",
+      "accent": "#F2F2F2",
+      "icon": "scan"
+    },
+    {
+      "id": "menu.settings",
+      "title": "menu.settings.title",
+      "description": "menu.settings.desc",
+      "status": "Playable",
+      "order": 20,
+      "targetKind": "Screen",
+      "target": "settings",
+      "accent": "#8C8C8C",
+      "icon": "gear"
+    }
   ]
 }

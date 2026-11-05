@@ -91,27 +91,40 @@ namespace DriftCareer.Core.Garage
             return r;
         }
 
-        /// <summary>Donut test: average sustained drift angle and rotation rate.</summary>
+        /// <summary>
+        /// Sustained-drift test with a "good driver": from 15 m/s a handbrake entry, then steering (countersteer)
+        /// and throttle are closed-loop controlled to hold ~38 deg. Rating = share of time in a controlled slide
+        /// x steadiness, so cars are judged on controllability rather than on spinning at fixed inputs.
+        /// </summary>
         private static float EstimateDrift(VehiclePhysicsProfile p)
         {
             var car = new PlanarVehicleHarness(p);
+            car.Sim.SetGearImmediate(2);
+            car.SetMotion(Vec2.Zero, 0f, new Vec2(0f, 15f), 0f);
             var c = VehicleControls.Neutral;
-            c.throttle = 1f;
-            for (int i = 0; i < 200; i++) car.Step(Dt, c);
-            c.steer = 1f; c.handbrake = 1f;
-            for (int i = 0; i < 40; i++) car.Step(Dt, c);
-            c.handbrake = 0f; c.throttle = 0.85f;
-            float angle = 0f; int n = 0;
-            for (int i = 0; i < 500; i++)
+            c.steer = 0.6f; c.handbrake = 1f; c.throttle = 0.5f;
+            for (int i = 0; i < 35; i++) car.Step(Dt, c);
+            c.handbrake = 0f;
+            const float target = 38f;
+            double sum = 0, sumSq = 0;
+            int n = 0, total = 0;
+            for (int i = 0; i < 1200; i++)
             {
+                float a = car.Telemetry.driftAngleDeg;
+                c.steer = MathUtil.Clamp((target - a) / 30f, -1f, 1f);
+                c.throttle = MathUtil.Clamp(c.throttle + (target - a) * 0.002f, 0.05f, 1f);
                 car.Step(Dt, c);
-                if (i > 150) { angle += Math.Abs(car.Telemetry.driftAngleDeg); n++; }
+                if (i <= 200) continue;
+                total++;
+                if (car.Telemetry.speedMs > 4f && a > 15f && a < 100f) { sum += a; sumSq += a * a; n++; }
             }
-            float avg = n > 0 ? angle / n : 0f;
-            // 0 deg -> 0, 70+ deg sustained -> 10. Penalize spinning out (>110).
-            float rating = MathUtil.Clamp(avg / 7f, 0f, 10f);
-            if (avg > 110f) rating *= 0.5f;
-            return rating;
+            if (n == 0 || total == 0) return 0f;
+            double avg = sum / n;
+            double std = Math.Sqrt(Math.Max(0.0, sumSq / n - avg * avg));
+            float frac = (float)n / total;
+            float steady = 1f - MathUtil.Clamp01((float)std / 40f);
+            float reach = MathUtil.Clamp01((float)avg / 35f);
+            return MathUtil.Clamp(10f * (float)Math.Pow(frac, 0.8) * steady * reach, 0f, 10f);
         }
     }
 }

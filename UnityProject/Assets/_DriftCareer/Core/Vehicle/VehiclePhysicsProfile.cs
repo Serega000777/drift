@@ -126,6 +126,8 @@ namespace DriftCareer.Core.Vehicle
         public float frictionTorque = 12f;
         /// <summary>Engine braking torque per 1000 rpm at closed throttle (Nm).</summary>
         public float engineBrakePer1000Rpm = 9f;
+        /// <summary>Engine + gearbox mass (kg) - used to compute weight changes of engine swaps.</summary>
+        public float swapMassKg = 190f;
         /// <summary>Full throttle torque (Nm) by rpm.</summary>
         public Curve torqueCurve = Curve.FromPairs(
             800f, 170f, 2000f, 235f, 3000f, 285f, 4000f, 315f, 5000f, 335f, 6000f, 322f, 7000f, 285f, 7600f, 250f);
