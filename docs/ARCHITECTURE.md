@@ -3,7 +3,7 @@
 ## 1. Слои
 ```
 ┌─────────────────────────────── DriftCareer.Editor (только редактор) ───────────────────────────────┐
-│ Меню Setup/Validate, настройка URP, импорт своих 3D-моделей                                         │
+│ Меню Setup/Validate, настройка URP, Release Hardening, импорт своих 3D-моделей авто и персонажей   │
 └────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────── DriftCareer.Runtime (Unity) ────────────────────────────────────────┐
 │ Bootstrap: GameBootstrap → GameServices (композиционный корень) → GameController (поток состояний)  │
@@ -11,7 +11,9 @@
 │ Track: AcademyBuilder · TrackSession · MaterialLibrary · ProceduralMeshes · SurfaceTag              │
 │ Input: InputRouter (Input System / legacy / тач / наклон) · Keys                                    │
 │ Cameras: CameraRig · IntroDirector     LayoutEditor: ObstacleField · LayoutEditorController         │
-│ Gameplay: DriftSession · GhostCar      UI: UiRoot · UiKit · экраны (меню, HUD, гараж, …)            │
+│ Gameplay: DriftSession · GhostCar      UI: UiRoot · UiKit · экраны (меню, HUD, гараж, кабинет, …)   │
+│ UI: OnboardingScreen · LoadingScreen · TransitionOverlay    Character: CharacterRig                 │
+│ Security: DeviceKeyProvider · SafeLog                                                               │
 │ GraphicsManager (URP: тени, AA, постобработка, пробы)                                               │
 └────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────── DriftCareer.Core (чистый C#, noEngineReferences) ───────────────────┐
@@ -20,13 +22,14 @@
 │ Assists · Gameplay (очки, упражнения, режимы, турниры, испытания, экономика, призраки, тандем)       │
 │ Garage (тюнинг, визуал, свапы, корч, оценка характеристик, свои авто, ИИ-интерфейс)                 │
 │ Catalog · Localization · Persistence (версионированные документы) · Layout (редактор) · Surfaces    │
-│ Platform (уровни устройств, IPlatformServices) · Account (кросс-прогрессия, политики)               │
+│ Platform (уровни устройств, IPlatformServices) · Account (кросс-прогрессия, политики, Auth,         │
+│          Privacy, PlayerIdentity) · Security (Crypto, SecureStore, подпись, LogRedactor) · Character │
 └────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 Правило зависимостей: Editor → Runtime → Core. Core ничего не знает про Unity и полностью тестируется `dotnet test`.
 
 ## 2. Сцена и поток
-Одна бесшовная сцена: процедурная Академия строится при старте и служит фоном меню и гаража (камера-шоурум), поэтому меню → гараж → езда без загрузок. Состояния (`GameFlow`): Boot → MainMenu ⇄ Garage/Settings → Loading → Intro → Driving ⇄ Paused/LayoutEditor; недопустимые переходы отклоняются (тест).
+Одна бесшовная сцена: процедурная Академия строится при старте (корутина `BootRoutine` → `TrackSession.BuildAcademyRoutine` → `AcademyBuilder.BuildRoutine`, прогресс по этапам на `LoadingScreen`) и служит фоном меню, гаража и кабинета (камера-шоурум), поэтому дальше меню → гараж → езда без загрузок, только «шторка» `TransitionOverlay.Wipe`. Первый запуск: загрузка → `OnboardingScreen` (возраст, согласия, ник/вход) → меню. Состояния (`GameFlow`): Boot → MainMenu ⇄ Garage/Settings → Loading → Intro → Driving ⇄ Paused/LayoutEditor; недопустимые переходы отклоняются (тест).
 
 Новые трассы подключаются через `TrackDefinition.loaderId`: сейчас `procedural:academy`; дальше `scene:<имя>` или `addressable:<ключ>`. Будущий контент — только данные в `catalog.json` (`ComingSoon`), без пустых сцен.
 
@@ -36,7 +39,8 @@
 ## 4. Данные и сохранения
 - Каталог, локализация, стили — текстовые файлы в `Resources/DriftCareer` (диффабельны, удобны для ИИ).
 - Сохранения: `IFileStore` (локально `persistentDataPath/DriftCareer`; консоли — реализация поверх их save API) + `VersionedDocumentStore<T>`: конверт `{schema, version, crc, data}`, атомарная запись (tmp → bak → замена), загрузка main → tmp → bak → default, битые файлы в карантин `.corrupt-*`, миграции в кодеках. Явный маппинг JSON без рефлексии.
-- Документы: `settings.json`, `profile.json` (тюнинг, сетапы, кошелёк, детали, машины, испытания, рекорды), `layouts/*.json`, `ghosts/*.json`.
+- Документы: `settings.json`, `profile.json` (тюнинг, сетапы, кошелёк с историей, детали, машины, испытания, рекорды, ник, персонаж), `privacy.json`, `layouts/*.json`, `ghosts/*.json`; секреты — `secure/*.sec` (зашифрованы).
+- Подпись: конверт получает поле `sig` = HMAC(schema|version|data) ключом установки (`ISaveSigner`). Неверная подпись → документ всё равно загружается, но `LoadReport.tampered` → `PlayerProfile.integrityCompromised` (навсегда) → соревновательное выключено.
 
 ## 5. Платформы: мобилки → ПК → консоли
 | Что | Мобилки (первые) | ПК / Steam | Консоли |
@@ -71,3 +75,21 @@
 
 ## 10. Графика
 URP: HDR, мягкие тени (дистанция/каскады по уровню), SSAO (renderer feature), FXAA/SMAA/MSAA, глобальный volume (ACES, bloom, цветокор, виньетка, motion blur, зерно — всё переключаемо), clear coat на кузове (Complex Lit), карты нормалей для асфальта/бетона, reflection probes в ангаре и над площадкой, туман и процедурное небо. Уровни Low → Ultra меняют тени, render scale, частицы, пробы, бюджет препятствий.
+
+## 11. Безопасность, вход, приватность (подробно — `SECURITY_PRIVACY.md`, сервер — `BACKEND_API.md`)
+```
+GameServices
+ ├─ Keys: IKeyProvider (DeviceKeyProvider) ──► DeriveKey("saves") → HmacSaveSigner → VersionedDocumentStore(sig)
+ │                                         └► DeriveKey("secure") → EncryptedFileSecureStore (ISecureStore)
+ ├─ Auth: AuthService(IAuthBackend, ISecureStore) ◄── IAuthProvider (платформа даёт одноразовый пропуск)
+ ├─ Privacy: PrivacySettings (privacy.json) ─┐
+ ├─ Policy: PlatformPolicy ──────────────────┼─► PrivacyRules.Resolve → Capabilities (что можно этому игроку)
+ └─ Profile.integrityCompromised ────────────┘
+```
+- Клиент недоверенный: подпись — от случайной правки; авторитетны только сервер и его проверки (то же ядро Core).
+- Все логи — через `SafeLog` (маскировка). Ник — `PlayerIdentity.Validate` (без персональных данных).
+- Платформенные хранилища (Keychain/Keystore/DPAPI/консоли) подключаются реализациями `ISecureStore`/`IKeyProvider` без изменения остального кода.
+
+## 12. Личный кабинет и персонаж
+- `ProfileScreen`: обзор, пилот, рекорды, кошелёк, аккаунт, приватность, безопасность. Камера-шоурум переключается между машиной и пилотом (`GameController.FocusPilot`).
+- `CharacterAppearance` (Core, данные) → `CharacterRig` (Runtime, процедурная модель из примитивов, поза стоя/сидя). Экипировка — `CharacterCatalog` (слоты, цены в кредитах, только косметика). Своя модель — `CustomCharacterImporter` (ПК), подключается через `UseCustomModel`, если `PlatformPolicy.allowUserModelImport` и `Capabilities.userModelImport`.

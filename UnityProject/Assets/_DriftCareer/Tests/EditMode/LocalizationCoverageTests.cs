@@ -18,12 +18,16 @@ namespace DriftCareer.Tests.EditMode
 
         private static string FindDir(string relative)
         {
-            var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-            while (dir != null)
+            // dotnet runs from tools/CoreTests/bin/..., Unity from the project root: walk up from both.
+            foreach (var start in new[] { TestContext.CurrentContext.TestDirectory, Directory.GetCurrentDirectory() })
             {
-                foreach (var candidate in new[] { Path.Combine(dir.FullName, relative), Path.Combine(dir.FullName, "UnityProject", relative) })
-                    if (Directory.Exists(candidate) || File.Exists(candidate)) return candidate;
-                dir = dir.Parent;
+                var dir = string.IsNullOrEmpty(start) ? null : new DirectoryInfo(start);
+                while (dir != null)
+                {
+                    foreach (var candidate in new[] { Path.Combine(dir.FullName, relative), Path.Combine(dir.FullName, "UnityProject", relative) })
+                        if (Directory.Exists(candidate)) return candidate;
+                    dir = dir.Parent;
+                }
             }
             return null;
         }
@@ -33,7 +37,7 @@ namespace DriftCareer.Tests.EditMode
         {
             string runtime = FindDir("Assets/_DriftCareer/Runtime");
             string locDir = FindDir("Assets/_DriftCareer/Resources/DriftCareer/Localization");
-            Assert.IsNotNull(runtime, "runtime folder not found");
+            if (runtime == null || locDir == null) Assert.Ignore("source folders not found (packaged build)");
             var loc = new LocalizationService();
             loc.LoadTable("ru", File.ReadAllText(Path.Combine(locDir, "ru.json")));
             loc.LoadTable("en", File.ReadAllText(Path.Combine(locDir, "en.json")));
