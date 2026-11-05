@@ -34,7 +34,6 @@ namespace DriftCareer.Runtime.Vehicle
         private VehicleController _vehicle;
         private readonly List<GameObject> _wheelVisuals = new List<GameObject>();
         private Material _brakeOff, _brakeOn;
-        private float _wheelSpin;
         private readonly float[] _spin = new float[4];
 
         public VehicleController Vehicle => _vehicle;
@@ -126,10 +125,9 @@ namespace DriftCareer.Runtime.Vehicle
 
             float bodyLengthScale = _sedan ? p.chassis.length / 4.1f : lengthScale;
             var lower = ProceduralMeshes.Spawn("Lower", bodyRoot, Extrude(_sedan ? SedanLowerProfile : LowerProfile, width, bodyLengthScale), paintMaterial, Vector3.zero, Quaternion.identity);
-            var cabin = ProceduralMeshes.Spawn("Cabin", bodyRoot, Extrude(_sedan ? SedanCabinProfile : CabinProfile, width * (_sedan ? 0.86f : 0.8f), bodyLengthScale, true), glass, Vector3.zero, Quaternion.identity);
+            ProceduralMeshes.Spawn("Cabin", bodyRoot, Extrude(_sedan ? SedanCabinProfile : CabinProfile, width * (_sedan ? 0.86f : 0.8f), bodyLengthScale, true), glass, Vector3.zero, Quaternion.identity);
             var roof = ProceduralMeshes.Spawn("Roof", bodyRoot, ProceduralMeshes.Box(new Vector3(width * (_sedan ? 0.82f : 0.74f), 0.03f, (_sedan ? 1.05f : 0.95f) * bodyLengthScale)), paintMaterial,
                 new Vector3(0f, _sedan ? 1.38f : 1.27f, (_sedan ? -0.4f : -0.57f) * bodyLengthScale), Quaternion.identity);
-            _ = cabin;
             paintedRenderers = new[] { lower.GetComponent<Renderer>(), roof.GetComponent<Renderer>() };
 
             // Door on the driver side (left-hand drive) with a pivot at its front edge.
@@ -138,10 +136,9 @@ namespace DriftCareer.Runtime.Vehicle
             doorPivot.localPosition = new Vector3(-width * 0.5f - 0.005f, 0f, 0.55f * lengthScale);
             var door = ProceduralMeshes.Spawn("Door", doorPivot, ProceduralMeshes.Box(new Vector3(0.04f, 0.55f, 1.15f * lengthScale)), paintMaterial,
                 new Vector3(0f, 0.3f, -0.58f * lengthScale), Quaternion.identity);
-            var doorGlass = ProceduralMeshes.Spawn("DoorGlass", doorPivot, ProceduralMeshes.Box(new Vector3(0.02f, 0.36f, 0.9f * lengthScale)), glass,
+            ProceduralMeshes.Spawn("DoorGlass", doorPivot, ProceduralMeshes.Box(new Vector3(0.02f, 0.36f, 0.9f * lengthScale)), glass,
                 new Vector3(0.12f, 0.86f, -0.6f * lengthScale), Quaternion.Euler(0f, 0f, -12f));
             paintedRenderers = new[] { paintedRenderers[0], paintedRenderers[1], door.GetComponent<Renderer>() };
-            _ = doorGlass;
 
             // Interior: seat, dashboard, steering wheel and the cockpit camera anchor.
             var seatMat = MaterialLibrary.LitColor("car_seat", new Color(0.1f, 0.1f, 0.11f), 0.2f);

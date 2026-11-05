@@ -12,7 +12,6 @@ namespace DriftCareer.Runtime.UI
     {
         private const int TipCount = 12;
 
-        private readonly UiRoot _ui;
         private readonly VisualElement _root;
         private readonly VisualElement _stripes;
         private readonly VisualElement _logo;
@@ -29,9 +28,8 @@ namespace DriftCareer.Runtime.UI
 
         public bool Visible => _visible;
 
-        public LoadingScreen(UiRoot ui, VisualElement layer)
+        public LoadingScreen(VisualElement layer)
         {
-            _ui = ui;
             _root = Ui.El("ld-root");
             _root.pickingMode = PickingMode.Position;
             _stripes = Ui.El("ld-stripes");

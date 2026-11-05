@@ -16,7 +16,9 @@ namespace DriftCareer.Runtime.UI
         public float redline = 7000f;
         public float max = 8000f;
         public float angleDeg;
+#if !UNITY_2022_1_OR_NEWER
         private readonly VisualElement _fallbackFill;
+#endif
 
         public RpmGauge()
         {
@@ -202,7 +204,7 @@ namespace DriftCareer.Runtime.UI
             _telemetryBox.Add(_telemetry);
             Root.Add(_telemetryBox);
 
-            _touch = new TouchControls(S.Input.Touch, S.Settings, UiRoot);
+            _touch = new TouchControls(S.Input.Touch, S.Settings);
             Root.Add(_touch.Root);
             RefreshTouchVisibility();
         }
@@ -357,11 +359,11 @@ namespace DriftCareer.Runtime.UI
             }
 
             Ui.SetVisible(_telemetryBox, TelemetryVisible);
-            if (TelemetryVisible) UpdateTelemetry(t, car, dt);
+            if (TelemetryVisible) UpdateTelemetry(t, car);
             _touch?.Tick(dt);
         }
 
-        private void UpdateTelemetry(VehicleTelemetry t, Vehicle.VehicleController car, float dt)
+        private void UpdateTelemetry(VehicleTelemetry t, Vehicle.VehicleController car)
         {
             _fpsFrames++;
             _fpsTime += Time.unscaledDeltaTime;

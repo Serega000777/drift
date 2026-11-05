@@ -13,7 +13,6 @@ namespace DriftCareer.Runtime.UI
     public sealed class TouchControls
     {
         private readonly TouchDriveState _state;
-        private readonly UiRoot _ui;
         private SettingsData _settings;
         private VisualElement _wheel;
         private VisualElement _knob;
@@ -24,11 +23,10 @@ namespace DriftCareer.Runtime.UI
 
         public VisualElement Root { get; } = Ui.El("tc-root");
 
-        public TouchControls(TouchDriveState state, SettingsData settings, UiRoot ui)
+        public TouchControls(TouchDriveState state, SettingsData settings)
         {
             _state = state;
             _settings = settings;
-            _ui = ui;
             Root.pickingMode = PickingMode.Ignore;
             Rebuild(settings);
         }

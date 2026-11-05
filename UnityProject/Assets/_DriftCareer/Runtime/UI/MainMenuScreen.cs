@@ -247,11 +247,5 @@ namespace DriftCareer.Runtime.UI
             if (m.tabRight) { Game.OpenGarage(); return true; }
             return true;
         }
-
-        /// <summary>Any key also leaves the splash (touch, mouse handled via pointer).</summary>
-        public void NotifyAnyInput()
-        {
-            if (_splash) LeaveSplash();
-        }
     }
 }

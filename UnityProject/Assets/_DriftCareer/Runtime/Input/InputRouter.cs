@@ -53,7 +53,9 @@ namespace DriftCareer.Runtime.Input
     {
         private float _kbSteer;
         private float _tiltCenter;
+#if ENABLE_INPUT_SYSTEM && DC_INPUT_SYSTEM
         private bool _tiltEnabledDevice;
+#endif
 
         public InputDevice ActiveDevice { get; private set; } = Application.isMobilePlatform ? InputDevice.Touch : InputDevice.KeyboardMouse;
         public TouchDriveState Touch { get; } = new TouchDriveState();

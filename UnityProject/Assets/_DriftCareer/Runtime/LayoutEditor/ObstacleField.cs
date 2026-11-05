@@ -3,6 +3,11 @@ using DriftCareer.Core;
 using DriftCareer.Core.Layout;
 using DriftCareer.Runtime.Track;
 using UnityEngine;
+#if UNITY_6000_0_OR_NEWER
+using PropMaterial = UnityEngine.PhysicsMaterial;
+#else
+using PropMaterial = UnityEngine.PhysicMaterial;
+#endif
 
 namespace DriftCareer.Runtime.LayoutEditor
 {
@@ -34,28 +39,13 @@ namespace DriftCareer.Runtime.LayoutEditor
     /// <summary>Builds obstacle GameObjects from definitions (procedural meshes, colliders, rigidbodies).</summary>
     public static class ObstacleFactory
     {
-        private static PhysicMaterialHandle _coneMaterial;
-
-        private struct PhysicMaterialHandle
-        {
-#if UNITY_6000_0_OR_NEWER
-            public PhysicsMaterial value;
-#else
-            public PhysicMaterial value;
-#endif
-        }
+        private static PropMaterial _propMaterial;
 
         private static void ApplyLowFriction(Collider c)
         {
-            if (_coneMaterial.value == null)
-            {
-#if UNITY_6000_0_OR_NEWER
-                _coneMaterial.value = new PhysicsMaterial("DC_Prop") { dynamicFriction = 0.45f, staticFriction = 0.5f, bounciness = 0.15f };
-#else
-                _coneMaterial.value = new PhysicMaterial("DC_Prop") { dynamicFriction = 0.45f, staticFriction = 0.5f, bounciness = 0.15f };
-#endif
-            }
-            c.sharedMaterial = _coneMaterial.value;
+            if (_propMaterial == null)
+                _propMaterial = new PropMaterial("DC_Prop") { dynamicFriction = 0.45f, staticFriction = 0.5f, bounciness = 0.15f };
+            c.sharedMaterial = _propMaterial;
         }
 
         public static GameObject Create(ObstacleDefinition def, Transform parent, bool ghost)

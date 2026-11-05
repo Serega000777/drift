@@ -56,6 +56,7 @@ namespace DriftCareer.Runtime
         private readonly TandemScoring _tandem = new TandemScoring();
         private ObstacleLayout _savedPlayerLayout;
         private bool _handbrakeLatched;
+        private bool _hbPrev;
         private int _lastTransitions;
         private float _saveTimer;
         private float _authTimer;
@@ -493,7 +494,7 @@ namespace DriftCareer.Runtime
             string mode = ModeIdFor(CurrentRun);
             Flow.TryTransition(GameState.Loading);
             Flow.TryTransition(GameState.Driving);
-            ConfigureRunKeepTournament(mode);
+            ConfigureRun(mode); // keeps an unfinished tournament, so "next round" continues it
             Session.Car.SetFrozen(false);
             Session.ResetCar(false);
             Session.Obstacles.ResetDynamic();
@@ -501,13 +502,6 @@ namespace DriftCareer.Runtime
             Time.timeScale = 1f;
             ShowOnly(null);
             BeginRunClock();
-        }
-
-        private void ConfigureRunKeepTournament(string mode)
-        {
-            var t = Tournament;
-            ConfigureRun(mode);
-            if (mode == "tournament_academy") Tournament = t != null && !t.Done ? t : Tournament;
         }
 
         private static string ModeIdFor(RunKind k)
@@ -704,8 +698,6 @@ namespace DriftCareer.Runtime
             _lastTransitions = sc.ChainActive ? sc.Transitions : 0;
             Services.Profile.distanceDrivenKm += t.speedMs * dt / 1000f;
         }
-
-        private bool _hbPrev;
 
         private void OnApplicationPause(bool paused)
         {

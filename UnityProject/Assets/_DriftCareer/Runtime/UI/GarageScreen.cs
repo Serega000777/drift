@@ -23,7 +23,6 @@ namespace DriftCareer.Runtime.UI
         private TuningGroup _group = TuningGroup.Suspension;
         private VehicleTuningState _draft;
         private VisualElement _content;
-        private Label _applyLabel;
         private Button _applyButton;
         private Label _credits;
         private Task<PerformanceReport> _statsTask;

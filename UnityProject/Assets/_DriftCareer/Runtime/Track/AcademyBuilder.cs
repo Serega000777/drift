@@ -158,9 +158,8 @@ namespace DriftCareer.Runtime.Track
             ProceduralMeshes.SpawnBox("DoorTrim", h, c + new Vector3(0f, site.doorHeight + 0.15f, d * 0.5f + 0.25f), new Vector3(site.doorWidth + 0.6f, 0.3f, 0.1f), trim, false);
             ProceduralMeshes.SpawnBox("Roof", h, c + new Vector3(0f, height + 0.15f, 0f), new Vector3(w + 0.8f, 0.3f, d + 0.8f), roofMat);
             // Rolled-up door drum above the opening.
-            var drum = ProceduralMeshes.Spawn("DoorDrum", h, ProceduralMeshes.Tire(0.45f, 0.01f, site.doorWidth, 16), roofMat,
+            ProceduralMeshes.Spawn("DoorDrum", h, ProceduralMeshes.Tire(0.45f, 0.01f, site.doorWidth, 16), roofMat,
                 c + new Vector3(0f, site.doorHeight + 0.6f, d * 0.5f - 0.6f), Quaternion.identity);
-            _ = drum;
 
             // Interior: ceiling light panels, shelves with tires, workbench, oil drums, stripes.
             var lightPanel = MaterialLibrary.Emissive("hangar_light", new Color(1f, 0.98f, 0.92f), 3f);
@@ -269,7 +268,6 @@ namespace DriftCareer.Runtime.Track
             float half = site.lotSize * 0.5f - 1.2f;
             var steel = MaterialLibrary.LitColor("guardrail", new Color(0.72f, 0.74f, 0.76f), 0.6f, 0.8f);
             var rubber = MaterialLibrary.LitColor("tire_rubber", new Color(0.05f, 0.05f, 0.055f), 0.15f);
-            var redWhite = MaterialLibrary.LitColor("tire_band", new Color(0.85f, 0.85f, 0.85f), 0.3f);
             var tireMesh = ProceduralMeshes.Tire(0.32f, 0.18f, 0.24f, 12);
             for (int side = 0; side < 4; side++)
             {
@@ -292,7 +290,6 @@ namespace DriftCareer.Runtime.Track
                 wc.size = side % 2 == 0 ? new Vector3(site.lotSize, 0.6f, 0.66f) : new Vector3(0.66f, 0.6f, site.lotSize);
                 for (float x = -half; x <= half; x += 4f)
                     ProceduralMeshes.Spawn("Post", p, ProceduralMeshes.CylinderY(0.05f, 0.75f, 6), steel, n * (half + 0.65f) + along * x, Quaternion.identity);
-                _ = redWhite;
             }
         }
 

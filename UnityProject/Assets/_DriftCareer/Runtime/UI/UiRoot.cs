@@ -68,7 +68,7 @@ namespace DriftCareer.Runtime.UI
             ScreenLayer = Ui.El("dc-layer");
             OverlayLayer = Ui.El("dc-layer");
             foreach (var l in new[] { HudLayer, ScreenLayer, OverlayLayer }) { l.pickingMode = PickingMode.Ignore; Root.Add(l); }
-            Loading = new LoadingScreen(this, OverlayLayer);
+            Loading = new LoadingScreen(OverlayLayer);
             Transition = new TransitionOverlay(OverlayLayer);
             _toast = Ui.Label("", "dc-toast");
             _toast.pickingMode = PickingMode.Ignore;
