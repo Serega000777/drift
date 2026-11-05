@@ -83,7 +83,7 @@ namespace DriftCareer.Core.Vehicle
             float idle = 850f;
             float redline = MathUtil.Max(s.redlineRpm, s.peakPowerRpm + 300f);
             float tPeak = MathUtil.Max(50f, s.peakTorqueNm);
-            float tAtPower = s.peakPowerKw * 1000f / MathUtil.Max(1000f, s.peakPowerRpm * MathUtil.RpmToRadPerSec);
+            float tAtPower = s.peakPowerKw * 1000f / MathUtil.Max(100f, s.peakPowerRpm * MathUtil.RpmToRadPerSec);
             tAtPower = MathUtil.Min(tAtPower, tPeak);
             float tqRpm = MathUtil.Clamp(s.peakTorqueRpm, idle + 500f, s.peakPowerRpm - 200f);
             var keys = new List<CurveKey>

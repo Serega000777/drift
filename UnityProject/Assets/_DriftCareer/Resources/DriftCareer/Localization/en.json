@@ -1,0 +1,580 @@
+{
+  "common": {
+    "apply": "Apply",
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "coming_soon": "Coming Soon",
+    "coming_soon_note": "This section is in development and not available yet.",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "details": "Details",
+    "gear": "Gear",
+    "kmh": "km/h",
+    "license_note": "Requires agreements with rights holders. Names and layouts will appear only once signed.",
+    "load": "Load",
+    "loading": "Loading…",
+    "locked": "Locked",
+    "mph": "mph",
+    "neutral": "N",
+    "no": "No",
+    "off": "Off",
+    "on": "On",
+    "play": "Play",
+    "playable": "Available",
+    "reset": "Reset",
+    "reverse": "R",
+    "rpm": "rpm",
+    "save": "Save",
+    "select": "Select",
+    "skip": "Skip",
+    "yes": "Yes"
+  },
+  "drill": {
+    "choose": "Choose a drill",
+    "clipping": {
+      "hint": "Drift close to every clipping point",
+      "title": "Clipping"
+    },
+    "donut": {
+      "hint": "Hold the slide inside the ring: full lock, throttle, handbrake to start",
+      "title": "Donut"
+    },
+    "figure8": {
+      "hint": "Donut around one marker, transition, then the other",
+      "title": "Figure eight"
+    },
+    "progress": "{0}%",
+    "slalom": {
+      "hint": "Weave the cones left and right in turn",
+      "title": "Slalom"
+    }
+  },
+  "editor": {
+    "budget": "Budget",
+    "clear": "Clear",
+    "clear_confirm": "Remove all objects from the lot?",
+    "count": "Objects: {0}",
+    "delete": "Delete",
+    "drive": "Drive",
+    "duplicate": "Duplicate",
+    "hint_desktop": "LMB — place/select, drag — move, Q/E — rotate, Del — delete, RMB — pan, wheel — zoom, Ctrl+Z/Y",
+    "hint_touch": "Tap — place, drag — move, two fingers — zoom/rotate",
+    "invalid": {
+      "BudgetExceeded": "Performance budget exceeded",
+      "ForbiddenZone": "Not allowed here: {0}",
+      "NonFinite": "Invalid position",
+      "NotFound": "Object not found",
+      "OutOfBounds": "Outside the lot",
+      "Overlap": "Overlaps another object",
+      "TypeLimit": "Limit for this object reached",
+      "UnknownType": "Unknown object"
+    },
+    "layout_name": "Layout name",
+    "load": "Open",
+    "loaded": "Layout loaded",
+    "no_layouts": "No saved layouts yet",
+    "palette": "Objects",
+    "presets": "Presets",
+    "redo": "Redo",
+    "rotate_left": "↺",
+    "rotate_right": "↻",
+    "save": "Save",
+    "saved": "Layout saved",
+    "snap": "Grid",
+    "title": "Layout Editor",
+    "undo": "Undo",
+    "zone": {
+      "car": "car",
+      "exit_lane": "hangar exit",
+      "hangar": "hangar",
+      "spawn": "spawn point"
+    }
+  },
+  "garage": {
+    "calculating": "Calculating…",
+    "caliper": "Calipers",
+    "compare": "Before → after",
+    "computed_note": "Numbers come from running the physics model, not from a lookup table.",
+    "finish": {
+      "Chrome": "Chrome",
+      "Gloss": "Gloss",
+      "Matte": "Matte",
+      "Metallic": "Metallic",
+      "Pearl": "Pearl",
+      "Satin": "Satin"
+    },
+    "finish_label": "Finish",
+    "my_setups": "My setups",
+    "paint": "Body color",
+    "presets": "Presets",
+    "rating": {
+      "acceleration": "Acceleration",
+      "braking": "Braking",
+      "drift": "Drift",
+      "grip": "Grip"
+    },
+    "reset_stock": "Reset to stock",
+    "rim_color": "Rim color",
+    "rim_size": "Rim size",
+    "save_setup": "Save setup",
+    "saved": "Setup saved",
+    "secondary": "Secondary color",
+    "setup_name": "Setup name",
+    "slot": {
+      "Fenders": "Fenders",
+      "FrontBumper": "Front bumper",
+      "Hood": "Hood",
+      "Livery": "Livery",
+      "RearBumper": "Rear bumper",
+      "Rims": "Rims",
+      "SideSkirts": "Side skirts",
+      "Spoiler": "Spoiler"
+    },
+    "stats": {
+      "braking": "Braking 100–0",
+      "gears": "Gears",
+      "layout": "Drivetrain",
+      "mass": "Weight",
+      "power": "Power",
+      "pw": "Power-to-weight",
+      "top": "Top speed",
+      "torque": "Torque",
+      "weight_dist": "Weight distribution",
+      "zero100": "0–100 km/h"
+    },
+    "tab": {
+      "performance": "Performance",
+      "setups": "Setups",
+      "stats": "Specs",
+      "visual": "Visual"
+    },
+    "test_drive": "Test drive",
+    "tint": "Window tint",
+    "title": "Garage",
+    "underglow": "Underglow"
+  },
+  "hud": {
+    "angle": "Angle",
+    "assist": "Assists: {0}",
+    "banked": "+{0}",
+    "best_chain": "Best",
+    "brake": "Brake",
+    "camera": "Camera",
+    "chain_lost": {
+      "collision": "Hit — chain lost",
+      "offtrack": "Off track — chain lost",
+      "spin": "Spin — chain lost"
+    },
+    "combo": "Combo",
+    "damage": "Damage",
+    "drift": "DRIFT",
+    "drill_done": "Drill complete!",
+    "editor": "Editor",
+    "handbrake": "Handbrake",
+    "integrity": "Body",
+    "pause": "Pause",
+    "puncture": "Puncture",
+    "reset": "Reset",
+    "score": "Score",
+    "shift_down": "−",
+    "shift_up": "+",
+    "start_engine": "Throttle — start and go",
+    "telemetry": "Telemetry",
+    "throttle": "Throttle",
+    "tire_blown": "Tire blown!",
+    "tires": "Tires",
+    "total": "Total",
+    "transition": "TRANSITION"
+  },
+  "intro": {
+    "skip": "Tap to skip"
+  },
+  "layout_preset": {
+    "clipping": "Clipping zones",
+    "donut": "Donuts",
+    "empty": "Empty lot",
+    "figure_eight": "Figure eight",
+    "gymkhana": "Gymkhana",
+    "slalom": "Slalom"
+  },
+  "main": {
+    "best_chain": "Best chain",
+    "hint_nav": "← → select   Enter — open   Esc — back",
+    "press_start": "Press to start",
+    "profile_points": "Drift points",
+    "quit": "Quit",
+    "section": {
+      "play": "Play",
+      "soon": "In development"
+    },
+    "start": "Start",
+    "tagline": "Your drift career starts here",
+    "version": "Prototype"
+  },
+  "menu": {
+    "academy": {
+      "desc": "Drive out of the hangar and practice.",
+      "title": "Test Ground"
+    },
+    "career": {
+      "desc": "From rookie to pro.",
+      "title": "Career"
+    },
+    "community": {
+      "desc": "Player tracks and layouts.",
+      "title": "Community"
+    },
+    "custom_cars": {
+      "desc": "Upload a 3D model — AI suggests drivetrain, gearbox and specs.",
+      "title": "Your Own Cars"
+    },
+    "digital_twin": {
+      "desc": "Order a model of your own car from photos.",
+      "title": "Digital Twin"
+    },
+    "garage": {
+      "desc": "Tune suspension, engine, gearbox, weight and looks.",
+      "title": "Garage & Tuning"
+    },
+    "jp_circuits": {
+      "desc": "Under licence.",
+      "title": "Japanese Circuits"
+    },
+    "online": {
+      "desc": "Lobbies, tandems, leaderboards.",
+      "title": "Online"
+    },
+    "parking": {
+      "desc": "Drifting between pillars.",
+      "title": "Night Parking"
+    },
+    "pro_series": {
+      "desc": "In partnership with organisers.",
+      "title": "Pro Series"
+    },
+    "settings": {
+      "desc": "Controls, assists, graphics, audio.",
+      "title": "Settings"
+    },
+    "tandem_ai": {
+      "desc": "Tandem drifting.",
+      "title": "AI Tandem"
+    },
+    "touge": {
+      "desc": "Japanese-style mountain road.",
+      "title": "Mountain Pass"
+    },
+    "training": {
+      "desc": "Donuts, figure eights, slalom.",
+      "title": "Training"
+    },
+    "winter": {
+      "desc": "Ice, snow, studded tires.",
+      "title": "Winter Drift"
+    }
+  },
+  "mode": {
+    "career": {
+      "desc": "From Academy rookie to pro leagues.",
+      "title": "Career"
+    },
+    "community_tracks": {
+      "desc": "Tracks and layouts made by players.",
+      "title": "Community Tracks"
+    },
+    "free_drive": {
+      "desc": "Drive the test ground freely.",
+      "title": "Free Drive"
+    },
+    "layout_editor": {
+      "desc": "Place cones, tires and barriers yourself.",
+      "title": "Layout Editor"
+    },
+    "online_tandem": {
+      "desc": "Tandem runs with other players.",
+      "title": "Online Tandem"
+    },
+    "score_attack": {
+      "desc": "Score as much as possible against the clock.",
+      "title": "Score Attack"
+    },
+    "tandem_ai": {
+      "desc": "Tandem drifting with an AI lead or chase car.",
+      "title": "AI Tandem"
+    },
+    "time_attack": {
+      "desc": "A clean lap against the clock.",
+      "title": "Time Attack"
+    },
+    "training": {
+      "desc": "Donuts, figure eights, slalom and clipping points.",
+      "title": "Training"
+    },
+    "winter_league": {
+      "desc": "A season on ice and snow.",
+      "title": "Winter League"
+    }
+  },
+  "obstacle": {
+    "bollard": "Bollard",
+    "clipping_gate": "Clipping gate",
+    "clipping_point": "Clipping point",
+    "concrete_barrier": "Concrete barrier",
+    "cone": "Cone",
+    "marker": "Paint line",
+    "marker_box": "Paint box",
+    "plastic_barrier": "Plastic barrier",
+    "tire": "Tire",
+    "tire_stack": "Tire stack",
+    "tire_wall": "Tire wall"
+  },
+  "part": {
+    "fenders": {
+      "flares": "Flares",
+      "overfenders": "Over-fenders",
+      "stock": "Stock"
+    },
+    "frontbumper": {
+      "aggressive": "Aggressive",
+      "splitter": "Splitter",
+      "stock": "Stock",
+      "street": "Street"
+    },
+    "hood": {
+      "carbon": "Carbon",
+      "stock": "Stock",
+      "vented": "Vented"
+    },
+    "livery": {
+      "number": "Race number",
+      "side_arrow": "Side arrow",
+      "stock": "None",
+      "stripes": "Stripes",
+      "two_tone": "Two-tone"
+    },
+    "rearbumper": {
+      "cutout": "Cut-out",
+      "diffuser": "Diffuser",
+      "stock": "Stock"
+    },
+    "rims": {
+      "deep_dish": "Deep dish",
+      "forged6": "Forged 6-spoke",
+      "mesh": "Mesh",
+      "spoke5": "5-spoke",
+      "stock": "Stock",
+      "turbofan": "Turbofan"
+    },
+    "sideskirts": {
+      "stock": "Stock",
+      "street": "Street",
+      "wide": "Wide"
+    },
+    "spoiler": {
+      "ducktail": "Ducktail",
+      "gt_wing": "GT wing",
+      "stock": "None",
+      "swan_neck": "Swan-neck wing"
+    }
+  },
+  "pause": {
+    "drills": "Training",
+    "editor": "Layout editor",
+    "exit_menu": "Main menu",
+    "garage": "Garage",
+    "repair": "Repair car",
+    "reset_car": "Return car to hangar",
+    "restart": "Restart",
+    "resume": "Resume",
+    "settings": "Settings",
+    "title": "Paused"
+  },
+  "settings": {
+    "assist": {
+      "Assisted": "Assisted",
+      "Balanced": "Balanced",
+      "Simulation": "Simulation"
+    },
+    "assist_note": "Assists only change input (steering, throttle, brakes), never the car physics.",
+    "assist_preset": "Assists",
+    "blowouts": "Tire blowouts",
+    "camera": {
+      "Bumper": "Bumper",
+      "Chase": "Chase",
+      "ChaseFar": "Chase far",
+      "Cockpit": "Cockpit",
+      "Hood": "Hood"
+    },
+    "camera_label": "Camera",
+    "control_scheme": "Control scheme",
+    "damage": {
+      "Full": "Full",
+      "Off": "Off",
+      "VisualOnly": "Visual only"
+    },
+    "damage_label": "Damage",
+    "deadzone": "Deadzone",
+    "engine": "Engine",
+    "fov": "Field of view",
+    "fps": "Frame rate",
+    "hud_scale": "HUD scale",
+    "intro": "Intro cinematic",
+    "language": "Language",
+    "left_handed": "Left-handed layout",
+    "manual": "Manual gearbox",
+    "master": "Master volume",
+    "music": "Music",
+    "quality": {
+      "Auto": "Auto",
+      "High": "High",
+      "Low": "Low",
+      "Medium": "Medium",
+      "Ultra": "Ultra"
+    },
+    "quality_label": "Quality",
+    "scheme": {
+      "Auto": "Auto",
+      "Tilt": "Tilt",
+      "TouchButtons": "Buttons",
+      "TouchSlider": "Slider",
+      "TouchWheel": "Touch wheel"
+    },
+    "sfx": "Effects",
+    "steer_sens": "Steering sensitivity",
+    "tab": {
+      "assists": "Assists",
+      "audio": "Audio",
+      "controls": "Controls",
+      "game": "Game",
+      "graphics": "Graphics"
+    },
+    "telemetry": "On-screen telemetry",
+    "tilt_sens": "Tilt sensitivity",
+    "tire_wear": "Tire wear",
+    "title": "Settings",
+    "units": "Units",
+    "vibration": "Vibration"
+  },
+  "surface": {
+    "concrete": "Concrete",
+    "dry_asphalt": "Dry asphalt",
+    "grass": "Grass",
+    "gravel": "Gravel",
+    "ice": "Ice",
+    "loose_snow": "Loose snow",
+    "packed_snow": "Packed snow",
+    "wet_asphalt": "Wet asphalt"
+  },
+  "track": {
+    "academy": {
+      "desc": "A hangar and a 250×250 m asphalt lot with donut, figure-eight and slalom zones.",
+      "title": "Academy: Test Ground"
+    },
+    "airfield": {
+      "desc": "Wide runways for high-speed drifting.",
+      "title": "Airfield"
+    },
+    "city": {
+      "desc": "Original industrial city layout.",
+      "title": "Industrial City"
+    },
+    "jp_circuits": {
+      "desc": "Planned only under licence from circuit owners.",
+      "title": "Japanese Circuits"
+    },
+    "parking": {
+      "desc": "Multi-storey parking: ramps, pillars, night lights.",
+      "title": "Night Parking"
+    },
+    "pro_series": {
+      "desc": "Planned in partnership with series organisers.",
+      "title": "Pro Series Circuits"
+    },
+    "touge": {
+      "desc": "Original mountain road: hairpins, elevation, tunnels.",
+      "title": "Mountain Pass"
+    },
+    "winter": {
+      "desc": "Winter drifting inspired by Lake Baikal: ice, snow, studs. A game, not advice to drive on real ice.",
+      "title": "Frozen Lake"
+    }
+  },
+  "tuning": {
+    "ackermann": "Ackermann",
+    "arb_front": "Front anti-roll bar",
+    "arb_rear": "Rear anti-roll bar",
+    "brake_bias": "Brake bias (front)",
+    "brake_force": "Brake force",
+    "camber_front": "Front camber",
+    "camber_rear": "Rear camber",
+    "compound": {
+      "DriftSemiSlick": "Semi-slick",
+      "Sport": "Sport",
+      "Street": "Street",
+      "Studded": "Studded",
+      "Winter": "Winter"
+    },
+    "compound_front": "Front tires",
+    "compound_rear": "Rear tires",
+    "damper_front": "Front dampers",
+    "damper_rear": "Rear dampers",
+    "diff": {
+      "Locked": "Welded (locked)",
+      "Lsd": "LSD",
+      "Open": "Open"
+    },
+    "diff_coast": "Coast lock",
+    "diff_power": "Power lock",
+    "diff_preload": "Diff preload",
+    "diff_type": "Diff type",
+    "downforce": "Downforce",
+    "final_drive": "Final drive (0 = stock)",
+    "flywheel": "Flywheel",
+    "front_weight": "Weight distribution (front)",
+    "gear_n": "Gear {0}",
+    "group": {
+      "Aero": "Aero",
+      "Alignment": "Alignment & steering",
+      "Brakes": "Brakes",
+      "Differential": "Differential",
+      "Engine": "Engine",
+      "Gearbox": "Gearbox",
+      "Suspension": "Suspension",
+      "Tires": "Tires",
+      "Visual": "Visual",
+      "Weight": "Weight"
+    },
+    "handbrake": "Handbrake",
+    "layout": {
+      "Awd": "AWD",
+      "Fwd": "FWD",
+      "Rwd": "RWD"
+    },
+    "limiter": "Rev limiter +",
+    "mass_offset": "Weight reduction / ballast",
+    "power": "Power (ECU/turbo)",
+    "preset": {
+      "grip": "Grip",
+      "pro_drift": "Pro drift",
+      "stock": "Stock",
+      "street_drift": "Street drift",
+      "winter": "Winter"
+    },
+    "pressure_front": "Front pressure",
+    "pressure_rear": "Rear pressure",
+    "ride_height": "Ride height",
+    "shift_time": "Shift time (0 = stock)",
+    "spring_front": "Front springs",
+    "spring_rear": "Rear springs",
+    "steering_lock": "Steering lock",
+    "toe_front": "Front toe",
+    "toe_rear": "Rear toe"
+  },
+  "vehicle": {
+    "placeholder_rwd": {
+      "desc": "The Academy's rear-wheel-drive training car.",
+      "title": "Prototype RWD"
+    }
+  }
+}

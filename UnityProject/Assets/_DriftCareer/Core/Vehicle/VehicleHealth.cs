@@ -194,9 +194,9 @@ namespace DriftCareer.Core.Vehicle
                 float d = t.Deflation;
                 float radius = sim.Axle(i).wheelRadius;
                 m.radiusOffset = -d * MathUtil.Min(SidewallDrop, radius * 0.3f);
-                m.gripScale = MathUtil.Lerp(1f, 0.4f, d) * TemperatureGripFactor(t.temperatureC);
+                m.gripScale = MathUtil.Lerp(1f, 0.5f, d) * TemperatureGripFactor(t.temperatureC);
                 m.gripScale *= 1f - 0.3f * MathUtil.Clamp01((t.wear - 0.7f) / 0.3f);
-                m.rollingResistanceScale = MathUtil.Lerp(1f, 25f, d);
+                m.rollingResistanceScale = MathUtil.Lerp(1f, 12f, d);
                 m.peakSlipScale = MathUtil.Lerp(1f, 2.5f, d);
                 if (mechanical)
                 {

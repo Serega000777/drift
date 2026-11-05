@@ -61,6 +61,12 @@ namespace DriftCareer.Core.Garage
             int steps = (int)(topSpeedBudgetSeconds / Dt);
             for (int i = 0; i < steps; i++)
             {
+                // "Good driver" launch: simple traction control keeps driven-wheel slip near the tire peak,
+                // so stats reflect the car, not wheelspin from flooring it.
+                float slip = 0f;
+                for (int w = 0; w < 4; w++) if (car.Sim.IsDriven(w)) slip = Math.Max(slip, car.Telemetry.wheels[w].slipRatio);
+                float target = p.rear.tire.peakSlipRatio * 1.3f;
+                c.throttle = MathUtil.Clamp(c.throttle + (slip > target ? -0.08f : 0.04f), 0.25f, 1f);
                 car.Step(Dt, c);
                 float kmh = car.Telemetry.SpeedKmh;
                 if (r.zeroTo100 < 0f && kmh >= 100f) r.zeroTo100 = car.Time;
