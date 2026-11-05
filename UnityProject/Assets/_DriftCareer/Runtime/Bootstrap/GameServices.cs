@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using DriftCareer.Core.Account;
 using DriftCareer.Core.Assists;
+using DriftCareer.Core.Gameplay;
 using DriftCareer.Core.Catalog;
 using DriftCareer.Core.Garage;
 using DriftCareer.Core.Layout;
@@ -10,6 +12,7 @@ using DriftCareer.Core.Persistence;
 using DriftCareer.Core.Platform;
 using DriftCareer.Core.Surfaces;
 using DriftCareer.Core.Vehicle;
+using DriftCareer.Core;
 using DriftCareer.Runtime.Input;
 using UnityEngine;
 
@@ -44,6 +47,9 @@ namespace DriftCareer.Runtime
         public PlatformDefaults Defaults { get; private set; }
         public InputRouter Input { get; private set; }
         public IVehicleIdentificationService Identification { get; private set; }
+        public IAccountService Account { get; private set; }
+        public ChallengeTracker Challenges { get; private set; }
+        public const string GhostsDir = "ghosts";
         public readonly List<string> StartupWarnings = new List<string>();
 
         public static GameServices Create()
@@ -64,22 +70,26 @@ namespace DriftCareer.Runtime
 
             Settings = SettingsStore.Load(SettingsFile, out var sr);
             Report("settings", sr);
+            if (sr.status == LoadStatus.CreatedDefault)
+                Settings.language = Application.systemLanguage == SystemLanguage.Russian || Application.systemLanguage == SystemLanguage.Ukrainian
+                    || Application.systemLanguage == SystemLanguage.Belarusian ? "ru" : "en";
             Profile = ProfileStore.Load(ProfileFile, out var pr);
             Report("profile", pr);
+            if (!Profile.ownedVehicles.Contains(Profile.selectedVehicleId)) Profile.selectedVehicleId = "placeholder_rwd";
 
             Loc = new LocalizationService();
             LoadLocalization("ru");
             LoadLocalization("en");
-            if (Settings.language == null) Settings.language = Application.systemLanguage == SystemLanguage.Russian ? "ru" : "en";
             Loc.SetLanguage(Settings.language);
 
             var catalogAsset = Resources.Load<TextAsset>("DriftCareer/Catalog/catalog");
             Catalog = catalogAsset != null ? CatalogJson.Parse(catalogAsset.text) : new ContentCatalog();
             foreach (var e in Catalog.Validate(Loc.Has, id => id == "procedural:academy")) StartupWarnings.Add("catalog: " + e);
 
+            LoadUserCars();
             Surfaces = SurfaceLibrary.CreateDefault();
             Site = new AcademySite();
-            BaseProfile = VehiclePhysicsProfile.CreatePlaceholderRwd();
+            BaseProfile = BaseProfileFor(Profile.selectedVehicleId);
             Identification = new GeometryOnlyIdentificationService();
 
             Device = new DeviceInfo
@@ -93,6 +103,8 @@ namespace DriftCareer.Runtime
             };
             Defaults = DeviceTierClassifier.DefaultsFor(Device, Settings.quality);
             Platform = new LocalPlatformServices(Device.kind);
+            Account = new LocalAccountService(PlatformPolicy.DefaultStore(Device.kind));
+            Challenges = new ChallengeTracker(Profile.challenges, DateTime.UtcNow);
             Input = new InputRouter { Settings = Settings };
             foreach (var w in StartupWarnings) Debug.LogWarning("[DriftCareer] " + w);
         }
@@ -112,6 +124,81 @@ namespace DriftCareer.Runtime
         }
 
         public string T(string key) => Loc.Get(key);
+
+        /// <summary>Base physics for a catalog vehicle ("spec:&lt;template&gt;" or the placeholder).</summary>
+        public readonly Dictionary<string, CustomVehicleManifest> UserCars = new Dictionary<string, CustomVehicleManifest>(StringComparer.Ordinal);
+        public const string UserCarsResources = "DriftCareer/UserCars";
+
+        /// <summary>
+        /// Player cars created with "Drift Career > Custom Car Import" (editor) live in Resources as manifest + prefab.
+        /// They are offered only where the platform policy allows user models (PC); consoles/mobile get them via the
+        /// future moderated server pipeline, never as raw files or asset bundles.
+        /// </summary>
+        private void LoadUserCars()
+        {
+            var policy = PlatformPolicy.For(PlatformPolicy.DefaultStore(Application.isMobilePlatform ? PlatformKind.Mobile : Application.isConsolePlatform ? PlatformKind.Console : PlatformKind.Desktop));
+            if (!policy.allowUserModelImport) return;
+            foreach (var asset in Resources.LoadAll<TextAsset>(UserCarsResources))
+            {
+                try
+                {
+                    var m = CustomVehicleJson.Decode(JsonParser.Parse(asset.text));
+                    if (string.IsNullOrEmpty(m.id) || !m.rightsAttested) continue;
+                    UserCars["user:" + m.id] = m;
+                    Catalog.Add(new Core.Catalog.VehicleDefinition
+                    {
+                        id = "user:" + m.id, titleKey = m.displayName, descriptionKey = "menu.custom_cars.desc", availability = Core.Catalog.FeatureAvailability.Playable,
+                        physicsProfileId = "user:" + m.id, visualId = "model:" + m.id, sortOrder = 100
+                    });
+                    if (!Profile.ownedVehicles.Contains("user:" + m.id)) Profile.ownedVehicles.Add("user:" + m.id);
+                }
+                catch (Core.JsonException e) { StartupWarnings.Add("user car " + asset.name + ": " + e.Message); }
+            }
+        }
+
+        public VehiclePhysicsProfile BaseProfileFor(string vehicleId)
+        {
+            if (vehicleId != null && UserCars.TryGetValue(vehicleId, out var userCar)) return SpecToProfileConverter.Convert(userCar.spec);
+            var def = Catalog.Vehicle(vehicleId);
+            if (def != null && def.physicsProfileId != null && def.physicsProfileId.StartsWith("spec:", StringComparison.Ordinal))
+                return SpecToProfileConverter.Convert(SpecTemplates.Create(def.physicsProfileId.Substring(5)));
+            return VehiclePhysicsProfile.CreatePlaceholderRwd();
+        }
+
+        public void SelectVehicle(string vehicleId)
+        {
+            if (Catalog.Vehicle(vehicleId) == null && vehicleId != "placeholder_rwd") return;
+            Profile.selectedVehicleId = vehicleId;
+            BaseProfile = BaseProfileFor(vehicleId);
+            SaveProfile();
+        }
+
+        public string BodyStyleFor(string vehicleId)
+        {
+            if (vehicleId != null && UserCars.ContainsKey(vehicleId)) return "model:" + vehicleId.Substring(5);
+            var def = Catalog.Vehicle(vehicleId);
+            return def != null && def.visualId != null && def.visualId.EndsWith("sedan", StringComparison.Ordinal) ? "sedan" : "coupe";
+        }
+
+        public static int VehiclePrice(string vehicleId) =>
+            vehicleId == "placeholder_rwd" || vehicleId == "classic_sedan_12" ? 0 : vehicleId == "jdm_coupe_turbo" ? 25000 : 6000;
+
+        public void SaveGhost(GhostRecording g, string name)
+        {
+            Try(() => Files.WriteTextAtomic(GhostsDir + "/" + name + ".json", JsonWriter.Write(g.ToJson(), false)));
+        }
+
+        public GhostRecording LoadGhost(string name)
+        {
+            string path = GhostsDir + "/" + name + ".json";
+            try
+            {
+                if (!Files.Exists(path)) return null;
+                return GhostRecording.FromJson(JsonParser.Parse(Files.ReadText(path)));
+            }
+            catch (Core.JsonException e) { Debug.LogWarning("[DriftCareer] ghost: " + e.Message); return null; }
+            catch (IOException e) { Debug.LogWarning("[DriftCareer] ghost: " + e.Message); return null; }
+        }
 
         public AssistSettings AssistSettings()
         {

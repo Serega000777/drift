@@ -47,10 +47,17 @@ namespace DriftCareer.Runtime.Track
             }
         }
 
-        public static Material LitColor(string key, Color color, float smoothness = 0.3f, float metallic = 0f, Texture tex = null, Vector2? tiling = null)
+        public static Material LitColor(string key, Color color, float smoothness = 0.3f, float metallic = 0f, Texture tex = null, Vector2? tiling = null, Texture normal = null, float normalStrength = 1f)
         {
             if (Cache.TryGetValue(key, out var m) && m != null) return m;
             m = new Material(Lit) { name = "DC_" + key };
+            if (normal != null && m.HasProperty("_BumpMap"))
+            {
+                m.SetTexture("_BumpMap", normal);
+                if (m.HasProperty("_BumpScale")) m.SetFloat("_BumpScale", normalStrength);
+                m.EnableKeyword("_NORMALMAP");
+                if (tiling.HasValue) m.SetTextureScale("_BumpMap", tiling.Value);
+            }
             SetColor(m, color);
             SetSurface(m, smoothness, metallic);
             if (tex != null)
@@ -117,9 +124,21 @@ namespace DriftCareer.Runtime.Track
         }
 
         /// <summary>Car paint material from a garage finish (instance per car so try-on never leaks).</summary>
+        private static Shader _complexLit;
+
         public static Material CarPaint(string hex, PaintFinish finish)
         {
-            var m = new Material(Lit) { name = "DC_Paint" };
+            if (_complexLit == null && IsUrp) _complexLit = Shader.Find("Universal Render Pipeline/Complex Lit");
+            bool clearCoat = _complexLit != null && finish != PaintFinish.Matte && finish != PaintFinish.Satin;
+            var m = new Material(clearCoat ? _complexLit : Lit) { name = "DC_Paint" };
+            if (clearCoat && m.HasProperty("_ClearCoatMask"))
+            {
+                // Two-layer car paint: base coat + glossy clear coat for crisp highlights.
+                m.EnableKeyword("_CLEARCOAT");
+                m.SetFloat("_ClearCoat", 1f);
+                m.SetFloat("_ClearCoatMask", finish == PaintFinish.Chrome ? 0.4f : 1f);
+                m.SetFloat("_ClearCoatSmoothness", 0.95f);
+            }
             Color c = ParseHex(hex, new Color(0.78f, 0.06f, 0.18f));
             float smooth = 0.8f, metal = 0.1f;
             switch (finish)
@@ -209,6 +228,38 @@ namespace DriftCareer.Runtime.Track
             TexCache[key] = tex;
             return tex;
         }
+
+        /// <summary>
+        /// Normal map from a height noise field. Channels: r=x, g=y, b=z, a=x so both DXT5nm-style (AG) and RGB
+        /// unpacking paths in URP/Standard decode it correctly on desktop and mobile.
+        /// </summary>
+        public static Texture2D NormalMap(string key, int size, float frequency, float strength, int seed)
+        {
+            if (TexCache.TryGetValue(key, out var cached) && cached != null) return cached;
+            var h = new float[size * size];
+            var rng = new System.Random(seed);
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+                h[y * size + x] = Mathf.PerlinNoise(x * frequency + seed, y * frequency) * 0.6f + (float)rng.NextDouble() * 0.4f;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, true, true) { name = key, wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear, anisoLevel = 4 };
+            var px = new Color32[size * size];
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float l = h[y * size + (x + size - 1) % size], r = h[y * size + (x + 1) % size];
+                float d = h[((y + size - 1) % size) * size + x], u = h[((y + 1) % size) * size + x];
+                var n = new Vector3((l - r) * strength, (d - u) * strength, 1f).normalized;
+                byte nx = (byte)((n.x * 0.5f + 0.5f) * 255f), ny = (byte)((n.y * 0.5f + 0.5f) * 255f), nz = (byte)((n.z * 0.5f + 0.5f) * 255f);
+                px[y * size + x] = new Color32(nx, ny, nz, nx);
+            }
+            tex.SetPixels32(px);
+            tex.Apply(true, true);
+            TexCache[key] = tex;
+            return tex;
+        }
+
+        public static Texture2D AsphaltNormal() => NormalMap("nrm_asphalt", 256, 0.35f, 3.5f, 11);
+        public static Texture2D ConcreteNormal() => NormalMap("nrm_concrete", 128, 0.08f, 1.5f, 17);
 
         /// <summary>Soft round puff used by tire smoke particles.</summary>
         public static Texture2D SmokePuff()

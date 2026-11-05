@@ -76,11 +76,12 @@ namespace DriftCareer.Runtime.Vehicle
         // ------------------------------------------------------------------ builder
 
         /// <summary>Builds the procedural placeholder coupe for a physics profile and visual setup.</summary>
-        public static CarRig BuildPlaceholder(Transform root, VehiclePhysicsProfile profile, VisualSetup visual)
+        public static CarRig BuildPlaceholder(Transform root, VehiclePhysicsProfile profile, VisualSetup visual, string bodyStyle = "coupe")
         {
             var rig = root.gameObject.AddComponent<CarRig>();
             rig.bodyRoot = new GameObject("Body").transform;
             rig.bodyRoot.SetParent(root, false);
+            rig._sedan = bodyStyle == "sedan";
             rig.BuildBody(profile);
             rig.BuildWheels(profile, visual);
             rig.ApplyVisual(visual, profile);
@@ -92,6 +93,20 @@ namespace DriftCareer.Runtime.Vehicle
             new Vector2(2.2f, 0.2f), new Vector2(2.24f, 0.52f), new Vector2(2.05f, 0.7f), new Vector2(0.85f, 0.83f),
             new Vector2(-1.65f, 0.87f), new Vector2(-2.17f, 0.82f), new Vector2(-2.26f, 0.5f), new Vector2(-2.2f, 0.2f),
         };
+
+        // Boxy three-box classic sedan silhouette.
+        private static readonly Vector2[] SedanLowerProfile =
+        {
+            new Vector2(2.05f, 0.22f), new Vector2(2.1f, 0.58f), new Vector2(2.0f, 0.78f), new Vector2(0.75f, 0.84f),
+            new Vector2(-1.35f, 0.86f), new Vector2(-2.0f, 0.86f), new Vector2(-2.08f, 0.6f), new Vector2(-2.02f, 0.22f),
+        };
+
+        private static readonly Vector2[] SedanCabinProfile =
+        {
+            new Vector2(0.75f, 0.83f), new Vector2(0.15f, 1.38f), new Vector2(-0.95f, 1.4f), new Vector2(-1.4f, 0.85f),
+        };
+
+        private bool _sedan;
 
         private static readonly Vector2[] CabinProfile =
         {
@@ -107,9 +122,12 @@ namespace DriftCareer.Runtime.Vehicle
             var glass = MaterialLibrary.LitColor("car_glass", new Color(0.05f, 0.07f, 0.09f, 1f), 0.95f, 0.2f);
             var trim = MaterialLibrary.LitColor("car_trim", new Color(0.06f, 0.06f, 0.065f), 0.35f);
 
-            var lower = ProceduralMeshes.Spawn("Lower", bodyRoot, Extrude(LowerProfile, width, lengthScale), paintMaterial, Vector3.zero, Quaternion.identity);
-            var cabin = ProceduralMeshes.Spawn("Cabin", bodyRoot, Extrude(CabinProfile, width * 0.8f, lengthScale, true), glass, Vector3.zero, Quaternion.identity);
-            var roof = ProceduralMeshes.Spawn("Roof", bodyRoot, ProceduralMeshes.Box(new Vector3(width * 0.74f, 0.03f, 0.95f * lengthScale)), paintMaterial, new Vector3(0f, 1.27f, -0.57f * lengthScale), Quaternion.identity);
+            float bodyLengthScale = _sedan ? p.chassis.length / 4.1f : lengthScale;
+            var lower = ProceduralMeshes.Spawn("Lower", bodyRoot, Extrude(_sedan ? SedanLowerProfile : LowerProfile, width, bodyLengthScale), paintMaterial, Vector3.zero, Quaternion.identity);
+            var cabin = ProceduralMeshes.Spawn("Cabin", bodyRoot, Extrude(_sedan ? SedanCabinProfile : CabinProfile, width * (_sedan ? 0.86f : 0.8f), bodyLengthScale, true), glass, Vector3.zero, Quaternion.identity);
+            var roof = ProceduralMeshes.Spawn("Roof", bodyRoot, ProceduralMeshes.Box(new Vector3(width * (_sedan ? 0.82f : 0.74f), 0.03f, (_sedan ? 1.05f : 0.95f) * bodyLengthScale)), paintMaterial,
+                new Vector3(0f, _sedan ? 1.38f : 1.27f, (_sedan ? -0.4f : -0.57f) * bodyLengthScale), Quaternion.identity);
+            _ = cabin;
             paintedRenderers = new[] { lower.GetComponent<Renderer>(), roof.GetComponent<Renderer>() };
 
             // Door on the driver side (left-hand drive) with a pivot at its front edge.
@@ -184,6 +202,7 @@ namespace DriftCareer.Runtime.Vehicle
         /// <summary>Rebuilds tires and rims (rim style/size/colors) - used by the garage try-on.</summary>
         public void RebuildWheels(VehiclePhysicsProfile p, VisualSetup visual)
         {
+            if (!proceduralBody) return; // model cars keep their own wheel meshes
             foreach (var go in _wheelVisuals) if (go != null) Destroy(go);
             _wheelVisuals.Clear();
             var rubber = MaterialLibrary.LitColor("tire_rubber", new Color(0.05f, 0.05f, 0.055f), 0.15f);
@@ -213,6 +232,7 @@ namespace DriftCareer.Runtime.Vehicle
         public void ApplyVisual(VisualSetup v, VehiclePhysicsProfile p)
         {
             v = VisualPartCatalog.Sanitize(v);
+            if (!proceduralBody) return; // model cars keep their own materials in MVP
             var paint = MaterialLibrary.CarPaint(v.paintColor, v.paintFinish);
             var secondary = MaterialLibrary.CarPaint(v.secondaryColor, PaintFinish.Gloss);
             foreach (var r in paintedRenderers) if (r != null) r.sharedMaterial = paint;
@@ -299,6 +319,59 @@ namespace DriftCareer.Runtime.Vehicle
                 var glow = MaterialLibrary.Emissive("underglow_" + v.underglowColor, MaterialLibrary.ParseHex(v.underglowColor, Color.cyan), 3f);
                 P("Underglow", new Vector3(w * 0.7f, 0.01f, 3.4f * ls), glow, new Vector3(0f, 0.12f, 0f));
             }
+        }
+
+        /// <summary>
+        /// Builds a rig around a player's 3D model: the model is offset so its wheel centers line up with the physics
+        /// wheel positions; wheel meshes are re-parented to the suspension/spin pivots. Physics never reads the mesh.
+        /// </summary>
+        public static CarRig BuildFromModel(Transform root, GameObject prefab, Core.Garage.ModelAnalysis a, VehiclePhysicsProfile p)
+        {
+            var rig = root.gameObject.AddComponent<CarRig>();
+            rig.proceduralBody = false;
+            rig.bodyRoot = new GameObject("Body").transform;
+            rig.bodyRoot.SetParent(root, false);
+            var model = Instantiate(prefab, rig.bodyRoot);
+            model.name = "Model";
+            Vector3 avg = Vector3.zero;
+            float avgR = 0f;
+            for (int i = 0; i < 4; i++)
+            {
+                avg += new Vector3(a.wheelCenters[i * 3], a.wheelCenters[i * 3 + 1], a.wheelCenters[i * 3 + 2]);
+                avgR += a.wheelRadii[i];
+            }
+            avg /= 4f; avgR /= 4f;
+            model.transform.localPosition = new Vector3(-avg.x, avgR - avg.y, -avg.z);
+            for (int i = 0; i < 4; i++)
+            {
+                var wr = new GameObject("Wheel_" + (WheelId)i).transform;
+                wr.SetParent(root, false);
+                rig.wheelRoots[i] = wr;
+                var spinner = new GameObject("Spinner").transform;
+                spinner.SetParent(wr, false);
+                string path = a.wheelPaths != null && i < a.wheelPaths.Length ? a.wheelPaths[i] : null;
+                var wheel = string.IsNullOrEmpty(path) ? null : model.transform.Find(path);
+                if (wheel != null)
+                {
+                    wheel.SetParent(spinner, true);
+                    wheel.localPosition = Vector3.zero;
+                }
+            }
+            float h = Mathf.Max(1f, a.heightM);
+            rig.cockpitAnchor = new GameObject("CockpitAnchor").transform;
+            rig.cockpitAnchor.SetParent(rig.bodyRoot, false);
+            rig.cockpitAnchor.localPosition = new Vector3(-0.37f, h * 0.8f, -0.35f);
+            rig.hoodAnchor = new GameObject("HoodAnchor").transform;
+            rig.hoodAnchor.SetParent(rig.bodyRoot, false);
+            rig.hoodAnchor.localPosition = new Vector3(0f, h * 0.75f, 0.5f);
+            rig.bumperAnchor = new GameObject("BumperAnchor").transform;
+            rig.bumperAnchor.SetParent(rig.bodyRoot, false);
+            rig.bumperAnchor.localPosition = new Vector3(0f, 0.55f, Mathf.Max(1.8f, a.lengthM * 0.5f));
+            rig.doorPivot = new GameObject("DoorPivot").transform;
+            rig.doorPivot.SetParent(rig.bodyRoot, false);
+            rig.partsRoot = new GameObject("Parts").transform;
+            rig.partsRoot.SetParent(rig.bodyRoot, false);
+            return rig;
         }
 
         /// <summary>Extrudes a side profile (x = car Z, y = height) across the car width. Profile must be star-shaped.</summary>

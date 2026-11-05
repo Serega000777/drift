@@ -39,6 +39,13 @@ namespace DriftCareer.Runtime.Track
             r.drillMarkers = BuildDrillMarkers(site, root);
             BuildPerimeter(site, root);
             BuildScenery(site, root, highQuality);
+            if (highQuality)
+            {
+                // Reflections for car paint: one probe inside the hangar, one over the lot.
+                var hc = V(site.HangarCenter, site.hangarHeight * 0.4f);
+                GraphicsManager.CreateProbe(root, hc, new Vector3(site.hangarSize.X, site.hangarHeight, site.hangarSize.Y), 128);
+                GraphicsManager.CreateProbe(root, new Vector3(0f, 6f, 0f), new Vector3(site.lotSize, 40f, site.lotSize), 128);
+            }
 
             r.spawnPosition = V(site.SpawnPosition, 0.04f);
             r.spawnRotation = Quaternion.Euler(0f, site.SpawnYawDeg, 0f);
@@ -84,7 +91,7 @@ namespace DriftCareer.Runtime.Track
         private static void BuildGround(AcademySite site, Transform root)
         {
             float size = site.lotSize;
-            var asphalt = MaterialLibrary.LitColor("asphalt", Color.white, 0.18f, 0f, MaterialLibrary.AsphaltTexture(), new Vector2(0.5f, 0.5f));
+            var asphalt = MaterialLibrary.LitColor("asphalt", Color.white, 0.22f, 0f, MaterialLibrary.AsphaltTexture(), new Vector2(0.5f, 0.5f), MaterialLibrary.AsphaltNormal(), 0.8f);
             var ground = ProceduralMeshes.Spawn("Lot", root, ProceduralMeshes.FlatQuad(size, size), asphalt, Vector3.zero, Quaternion.identity, false);
             ground.GetComponent<MeshRenderer>().receiveShadows = true;
             var col = ground.AddComponent<BoxCollider>();
@@ -112,7 +119,7 @@ namespace DriftCareer.Runtime.Track
             var wall = MaterialLibrary.LitColor("hangar_wall", new Color(0.55f, 0.58f, 0.6f), 0.35f, 0.4f);
             var trim = MaterialLibrary.LitColor("hangar_trim", new Color(0.85f, 0.32f, 0.06f), 0.4f);
             var roofMat = MaterialLibrary.LitColor("hangar_roof", new Color(0.4f, 0.42f, 0.44f), 0.3f, 0.5f);
-            var concrete = MaterialLibrary.LitColor("concrete", Color.white, 0.25f, 0f, MaterialLibrary.ConcreteTexture(), new Vector2(0.6f, 0.6f));
+            var concrete = MaterialLibrary.LitColor("concrete", Color.white, 0.35f, 0f, MaterialLibrary.ConcreteTexture(), new Vector2(0.6f, 0.6f), MaterialLibrary.ConcreteNormal(), 0.6f);
 
             // Floor slab (2 cm threshold at the door).
             var floor = ProceduralMeshes.SpawnBox("Floor", h, c + new Vector3(0f, 0.01f, 0f), new Vector3(w, 0.02f, d), concrete);

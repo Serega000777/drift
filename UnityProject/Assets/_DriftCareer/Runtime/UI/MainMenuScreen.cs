@@ -22,6 +22,7 @@ namespace DriftCareer.Runtime.UI
         private Label _detailTitle, _detailText, _detailBadge;
         private Label _press;
         private int _selected;
+        private VisualElement _credits;
         private bool _splash = true;
         private float _pulse;
         private const float CardStep = 396f; // width + margins
@@ -52,6 +53,8 @@ namespace DriftCareer.Runtime.UI
             var stats = Ui.El("mm-stats");
             stats.Add(Stat(T("main.profile_points"), Mathf.RoundToInt(S.Profile.totalDriftPoints).ToString("N0")));
             stats.Add(Stat(T("main.best_chain"), Mathf.RoundToInt(S.Profile.bestChain).ToString("N0")));
+            _credits = Stat(T("main.credits"), S.Profile.wallet.credits.ToString("N0") + " CR");
+            stats.Add(_credits);
             top.Add(stats);
             Root.Add(top);
 
@@ -164,6 +167,7 @@ namespace DriftCareer.Runtime.UI
         protected override void OnShow()
         {
             CloseDetail();
+            if (_credits != null && _credits.childCount > 1 && _credits[1] is Label l) l.text = S.Profile.wallet.credits.ToString("N0") + " CR";
             Game.ShowMenuBackdrop();
             if (!_splash) Select(_selected, true);
         }
@@ -197,13 +201,11 @@ namespace DriftCareer.Runtime.UI
             switch (s.targetKind)
             {
                 case MenuTargetKind.Track: Game.StartAcademy("free_drive"); break;
-                case MenuTargetKind.Mode:
-                    if (s.targetId == "training") Game.StartAcademy("training");
-                    else Game.StartAcademy("free_drive");
-                    break;
+                case MenuTargetKind.Mode: Game.StartAcademy(s.targetId); break;
                 case MenuTargetKind.Screen:
                     if (s.targetId == "garage") Game.OpenGarage();
                     else if (s.targetId == "settings") Game.OpenSettings();
+                    else if (s.targetId == "challenges") Game.OpenChallenges();
                     else OpenDetail(s);
                     break;
             }

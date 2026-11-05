@@ -15,6 +15,8 @@ namespace DriftCareer.Core.Garage
         /// <summary>Wheel centers in model space (m): FL, FR, RL, RR as x,y,z triples.</summary>
         public float[] wheelCenters = new float[12];
         public float[] wheelRadii = new float[4];
+        /// <summary>Hierarchy paths of the wheel transforms inside the model (FL, FR, RL, RR).</summary>
+        public string[] wheelPaths = new string[4];
         public float lengthM, widthM, heightM;
         public int triangleCount;
         public int materialCount;
@@ -45,6 +47,73 @@ namespace DriftCareer.Core.Garage
         public ModelAnalysis analysis = new ModelAnalysis();
         public VehicleSpecSheet spec = new VehicleSpecSheet();
         public string createdUtc;
+    }
+
+    /// <summary>Explicit JSON mapping for manifests written by the import tool and read by the game.</summary>
+    public static class CustomVehicleJson
+    {
+        public static JsonValue Encode(CustomVehicleManifest m)
+        {
+            var a = m.analysis ?? new ModelAnalysis();
+            var wc = JsonValue.NewArray();
+            foreach (var f in a.wheelCenters) wc.Add(JsonValue.Number(f));
+            var wr = JsonValue.NewArray();
+            foreach (var f in a.wheelRadii) wr.Add(JsonValue.Number(f));
+            var wp = JsonValue.NewArray();
+            foreach (var path in a.wheelPaths ?? new string[4]) wp.Add(JsonValue.String(path ?? ""));
+            var s = m.spec ?? new VehicleSpecSheet();
+            var spec = JsonValue.NewObject()
+                .Set("name", s.displayName).Set("layout", s.layout.ToString()).Set("mass", s.curbMassKg).Set("front", s.frontWeightFraction)
+                .Set("powerKw", s.peakPowerKw).Set("powerRpm", s.peakPowerRpm).Set("torque", s.peakTorqueNm).Set("torqueRpm", s.peakTorqueRpm)
+                .Set("redline", s.redlineRpm).Set("turbo", s.turbo).Set("gears", s.gearCount).Set("wheelbase", s.wheelbaseM)
+                .Set("trackF", s.trackFrontM).Set("trackR", s.trackRearM).Set("length", s.lengthM).Set("width", s.widthM).Set("height", s.heightM)
+                .Set("tireF", s.tireSizeFront).Set("tireR", s.tireSizeRear).Set("source", s.source.ToString()).Set("confidence", s.confidence);
+            return JsonValue.NewObject()
+                .Set("version", m.version).Set("id", m.id).Set("name", m.displayName).Set("scope", m.scope.ToString()).Set("status", m.status.ToString())
+                .Set("rights", m.rightsAttested).Set("model", m.modelFileName ?? "").Set("created", m.createdUtc ?? "")
+                .Set("analysis", JsonValue.NewObject().Set("wheelCenters", wc).Set("wheelRadii", wr).Set("wheelPaths", wp).Set("length", a.lengthM).Set("width", a.widthM)
+                    .Set("height", a.heightM).Set("tris", a.triangleCount).Set("materials", a.materialCount).Set("wheels", a.wheelsDetected))
+                .Set("spec", spec);
+        }
+
+        public static CustomVehicleManifest Decode(JsonValue j)
+        {
+            var m = new CustomVehicleManifest
+            {
+                id = j.GetString("id", "custom"), displayName = j.GetString("name", "Custom car"),
+                scope = j.GetEnum("scope", CustomVehicleScope.Private), status = j.GetEnum("status", CustomVehicleStatus.Draft),
+                rightsAttested = j.GetBool("rights"), modelFileName = j.GetString("model", ""), createdUtc = j.GetString("created", "")
+            };
+            var a = j.GetObject("analysis");
+            if (a != null)
+            {
+                var wc = a.GetArray("wheelCenters");
+                if (wc != null) for (int i = 0; i < Math.Min(12, wc.Count); i++) m.analysis.wheelCenters[i] = wc[i].Type == JsonType.Number ? wc[i].AsFloat : 0f;
+                var wr = a.GetArray("wheelRadii");
+                if (wr != null) for (int i = 0; i < Math.Min(4, wr.Count); i++) m.analysis.wheelRadii[i] = wr[i].Type == JsonType.Number ? wr[i].AsFloat : 0.3f;
+                var wp = a.GetArray("wheelPaths");
+                if (wp != null) for (int i = 0; i < Math.Min(4, wp.Count); i++) m.analysis.wheelPaths[i] = wp[i].Type == JsonType.String ? wp[i].AsString : "";
+                m.analysis.lengthM = a.GetFloat("length"); m.analysis.widthM = a.GetFloat("width"); m.analysis.heightM = a.GetFloat("height");
+                m.analysis.triangleCount = a.GetInt("tris"); m.analysis.materialCount = a.GetInt("materials"); m.analysis.wheelsDetected = a.GetBool("wheels");
+            }
+            var s = j.GetObject("spec");
+            if (s != null)
+            {
+                var d = new VehicleSpecSheet();
+                m.spec = new VehicleSpecSheet
+                {
+                    displayName = s.GetString("name", m.displayName), layout = s.GetEnum("layout", d.layout), curbMassKg = s.GetFloat("mass", d.curbMassKg),
+                    frontWeightFraction = s.GetFloat("front", d.frontWeightFraction), peakPowerKw = s.GetFloat("powerKw", d.peakPowerKw),
+                    peakPowerRpm = s.GetFloat("powerRpm", d.peakPowerRpm), peakTorqueNm = s.GetFloat("torque", d.peakTorqueNm),
+                    peakTorqueRpm = s.GetFloat("torqueRpm", d.peakTorqueRpm), redlineRpm = s.GetFloat("redline", d.redlineRpm), turbo = s.GetBool("turbo"),
+                    gearCount = s.GetInt("gears", d.gearCount), wheelbaseM = s.GetFloat("wheelbase", d.wheelbaseM), trackFrontM = s.GetFloat("trackF", d.trackFrontM),
+                    trackRearM = s.GetFloat("trackR", d.trackRearM), lengthM = s.GetFloat("length", d.lengthM), widthM = s.GetFloat("width", d.widthM),
+                    heightM = s.GetFloat("height", d.heightM), tireSizeFront = s.GetString("tireF", d.tireSizeFront), tireSizeRear = s.GetString("tireR", d.tireSizeRear),
+                    source = s.GetEnum("source", SpecSource.Manual), confidence = s.GetFloat("confidence", 1f)
+                };
+            }
+            return m;
+        }
     }
 
     public sealed class IdentificationRequest

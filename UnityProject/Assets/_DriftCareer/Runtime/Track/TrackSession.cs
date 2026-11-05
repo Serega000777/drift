@@ -31,7 +31,11 @@ namespace DriftCareer.Runtime.Track
         public void ResetCar(bool repair)
         {
             Car.ResetTo(World.spawnPosition, World.spawnRotation, repair);
-            if (repair) Deformer.Repair();
+            if (repair)
+            {
+                Deformer.Repair();
+                ApplyUsedTires(Car, GameServices.Instance.Profile.TuningFor(GameServices.Instance.Profile.selectedVehicleId));
+            }
             Drift.ResetRun();
         }
 
@@ -47,7 +51,6 @@ namespace DriftCareer.Runtime.Track
         public static TrackSession BuildAcademy(GameServices services, float qualityScale)
         {
             var scene = SceneManager.CreateScene("Track_academy_" + DateTime.UtcNow.Ticks);
-            var previous = SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(scene);
             var root = new GameObject("TrackSession");
             var session = root.AddComponent<TrackSession>();
@@ -65,36 +68,63 @@ namespace DriftCareer.Runtime.Track
             session.Layout.Changed += () => session.Obstacles.Sync(session.Layout.Layout);
             session.Obstacles.Sync(session.Layout.Layout);
 
-            // Car.
+            session.BuildCar(services, qualityScale);
+
+            session.Drift = new DriftSession(services.Site);
+            session.Drift.Bind(session.Car, session.Obstacles);
+            return session;
+        }
+
+        /// <summary>(Re)creates the player car for the selected vehicle (garage car switch).</summary>
+        public void BuildCar(GameServices services, float qualityScale)
+        {
+            Vector3 pos = World.spawnPosition;
+            Quaternion rot = World.spawnRotation;
+            if (Car != null)
+            {
+                pos = Car.transform.position;
+                rot = Car.transform.rotation;
+                Destroy(Car.gameObject);
+            }
             var carGo = new GameObject("PlayerCar");
-            carGo.transform.SetParent(root.transform, false);
-            carGo.layer = 2; // Ignore Raycast: wheel/camera rays never hit the car itself.
+            carGo.transform.SetParent(transform, false);
             carGo.AddComponent<Rigidbody>();
             var car = carGo.AddComponent<VehicleController>();
             var tuning = services.Profile.TuningFor(services.Profile.selectedVehicleId);
             var profile = TuningApplier.Apply(services.BaseProfile, tuning);
             car.Initialize(profile, services.Settings.health, services.AssistSettings(), services.Surfaces);
-            var rig = CarRig.BuildPlaceholder(carGo.transform, profile, tuning.visual);
+            string style = services.BodyStyleFor(services.Profile.selectedVehicleId);
+            CarRig rig = null;
+            if (style.StartsWith("model:"))
+            {
+                string id = style.Substring(6);
+                var prefab = Resources.Load<GameObject>(GameServices.UserCarsResources + "/" + id);
+                if (prefab != null && services.UserCars.TryGetValue("user:" + id, out var manifest))
+                    rig = CarRig.BuildFromModel(carGo.transform, prefab, manifest.analysis, profile);
+            }
+            if (rig == null) rig = CarRig.BuildPlaceholder(carGo.transform, profile, tuning.visual, style == "sedan" ? "sedan" : "coupe");
             rig.Bind(car);
             AddBodyColliders(carGo, profile);
-            SetLayerRecursive(carGo, 2);
+            SetLayerRecursive(carGo, 2); // Ignore Raycast: wheel/camera rays never hit the car itself.
             car.ApplyProfile(profile); // re-apply mass/inertia after colliders exist
-            car.ResetTo(session.World.spawnPosition, session.World.spawnRotation, true);
-            session.Car = car;
-            session.Rig = rig;
-            session.Effects = carGo.AddComponent<VehicleEffects>();
-            session.Effects.Initialize(car, rig, qualityScale);
-            session.Deformer = carGo.AddComponent<DamageDeformer>();
-            session.Deformer.Initialize(car, rig.bodyRoot);
+            car.ResetTo(pos, rot, true);
+            ApplyUsedTires(car, tuning);
+            Car = car;
+            Rig = rig;
+            Effects = carGo.AddComponent<VehicleEffects>();
+            Effects.Initialize(car, rig, qualityScale * services.Settings.particleDensity);
+            Deformer = carGo.AddComponent<DamageDeformer>();
+            Deformer.Initialize(car, rig.bodyRoot);
             carGo.AddComponent<AudioSource>();
-            session.Audio = carGo.AddComponent<VehicleAudio>();
+            Audio = carGo.AddComponent<VehicleAudio>();
             var s = services.Settings;
-            session.Audio.Initialize(car, s.masterVolume, s.engineVolume, s.effectsVolume);
+            Audio.Initialize(car, s.masterVolume, s.engineVolume, s.effectsVolume);
+            Drift?.Bind(car, Obstacles);
+        }
 
-            session.Drift = new DriftSession(services.Site);
-            session.Drift.Bind(car, session.Obstacles);
-            if (previous.IsValid() && previous != scene) SceneManager.SetActiveScene(scene);
-            return session;
+        private static void ApplyUsedTires(VehicleController car, VehicleTuningState t)
+        {
+            for (int i = 0; i < 4; i++) car.Health.tires[i].wear = i >= 2 ? t.usedTireWear : t.usedTireWear * 0.5f;
         }
 
         private static void AddBodyColliders(GameObject car, VehiclePhysicsProfile p)
