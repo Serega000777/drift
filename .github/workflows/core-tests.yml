@@ -1,0 +1,15 @@
+name: core-tests
+# Runs the engine-free simulation/gameplay tests without a Unity license.
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Test DriftCareer.Core
+        run: dotnet test tools/CoreTests --logger "console;verbosity=normal"

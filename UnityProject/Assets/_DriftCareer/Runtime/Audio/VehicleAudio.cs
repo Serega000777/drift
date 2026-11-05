@@ -54,11 +54,11 @@ namespace DriftCareer.Runtime.Audio
             car.Health.TireBlown += w => _bang = 1f;
         }
 
-        public void SetVolumes(float master, float engine, float effects)
+        public void SetVolumes(float master, float engine, float effects, float tires = 1f)
         {
             if (_source != null) _source.volume = Mathf.Clamp01(master);
             engineVolume = 0.55f * Mathf.Clamp01(engine);
-            tireVolume = 0.45f * Mathf.Clamp01(effects);
+            tireVolume = 0.45f * Mathf.Clamp01(tires);
             effectsVolume = 0.8f * Mathf.Clamp01(effects);
         }
 

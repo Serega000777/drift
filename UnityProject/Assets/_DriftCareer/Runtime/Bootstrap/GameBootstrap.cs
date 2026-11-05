@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if DC_UGUI
+using UnityEngine.EventSystems;
+#endif
 
 namespace DriftCareer.Runtime
 {
@@ -34,10 +37,30 @@ namespace DriftCareer.Runtime
             Instance = this;
             DontDestroyOnLoad(gameObject);
             DisableSceneCameras();
+            EnsureEventSystem();
             var services = GameServices.Create();
             Controller = gameObject.AddComponent<GameController>();
             Controller.Boot(services);
             Debug.Log($"[DriftCareer] Booted. Platform={services.Device.kind} Tier={services.Defaults.quality} Save={Application.persistentDataPath}");
+        }
+
+        /// <summary>
+        /// UI Toolkit routes pointer/navigation input through an EventSystem when one exists; the module must match the
+        /// active input backend (Input System vs legacy), otherwise menus get no clicks.
+        /// </summary>
+        private static void EnsureEventSystem()
+        {
+#if DC_UGUI
+            if (EventSystem.current != null) return;
+            var go = new GameObject("EventSystem");
+            go.AddComponent<EventSystem>();
+#if ENABLE_INPUT_SYSTEM && DC_INPUT_SYSTEM
+            go.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+#else
+            go.AddComponent<StandaloneInputModule>();
+#endif
+            DontDestroyOnLoad(go);
+#endif
         }
 
         private static T[] FindAll<T>() where T : Object

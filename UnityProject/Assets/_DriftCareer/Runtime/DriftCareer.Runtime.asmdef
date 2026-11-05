@@ -5,7 +5,8 @@
         "DriftCareer.Core",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -15,8 +16,21 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
-        { "name": "com.unity.inputsystem", "expression": "1.0.0", "define": "DC_INPUT_SYSTEM" },
-        { "name": "com.unity.render-pipelines.universal", "expression": "12.0.0", "define": "DC_URP" }
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "DC_INPUT_SYSTEM"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "12.0.0",
+            "define": "DC_URP"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "1.0.0",
+            "define": "DC_UGUI"
+        }
     ],
     "noEngineReferences": false
 }

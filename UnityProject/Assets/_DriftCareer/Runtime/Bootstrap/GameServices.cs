@@ -98,7 +98,7 @@ namespace DriftCareer.Runtime
                 systemMemoryMb = SystemInfo.systemMemorySize,
                 graphicsMemoryMb = SystemInfo.graphicsMemorySize,
                 processorCount = SystemInfo.processorCount,
-                touchSupported = UnityEngine.Input.touchSupported,
+                touchSupported = TouchSupported(),
                 gyroSupported = SystemInfo.supportsGyroscope,
             };
             Defaults = DeviceTierClassifier.DefaultsFor(Device, Settings.quality);
@@ -107,6 +107,17 @@ namespace DriftCareer.Runtime
             Challenges = new ChallengeTracker(Profile.challenges, DateTime.UtcNow);
             Input = new InputRouter { Settings = Settings };
             foreach (var w in StartupWarnings) Debug.LogWarning("[DriftCareer] " + w);
+        }
+
+        private static bool TouchSupported()
+        {
+#if ENABLE_INPUT_SYSTEM && DC_INPUT_SYSTEM
+            return UnityEngine.InputSystem.Touchscreen.current != null || Application.isMobilePlatform;
+#elif ENABLE_LEGACY_INPUT_MANAGER
+            return UnityEngine.Input.touchSupported;
+#else
+            return Application.isMobilePlatform;
+#endif
         }
 
         private void Report(string what, LoadReport r)

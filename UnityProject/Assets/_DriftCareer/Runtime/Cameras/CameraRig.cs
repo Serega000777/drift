@@ -17,6 +17,9 @@ namespace DriftCareer.Runtime.Cameras
         public Camera Cam { get; private set; }
         public RigMode Mode { get; private set; } = RigMode.Chase;
         public float baseFov = 60f;
+        public float distanceScale = 1f;
+        public float heightScale = 1f;
+        public float driftLookScale = 1f;
         public float blendTime = 0.7f;
 
         // Top-down editor state (driven by the layout editor).
@@ -116,11 +119,11 @@ namespace DriftCareer.Runtime.Cameras
                 case RigMode.ChaseFar:
                 {
                     bool far = mode == RigMode.ChaseFar;
-                    float dist = far ? 7.8f : 5.4f, height = far ? 2.4f : 1.75f;
+                    float dist = (far ? 7.8f : 5.4f) * distanceScale, height = (far ? 2.4f : 1.75f) * heightScale;
                     float carYaw = t.eulerAngles.y;
                     float velYaw = speed > 4f ? Mathf.Atan2(vel.x, vel.z) * Mathf.Rad2Deg : carYaw;
                     // Drift cam: blend toward the travel direction so the slide stays in frame.
-                    float targetYaw = Mathf.LerpAngle(carYaw, velYaw, Mathf.Clamp01((speed - 4f) / 10f) * 0.45f);
+                    float targetYaw = Mathf.LerpAngle(carYaw, velYaw, Mathf.Clamp01((speed - 4f) / 10f) * 0.45f * driftLookScale);
                     float yaw = Mathf.LerpAngle(_yawSmoothed, targetYaw, 1f - Mathf.Exp(-5f * Time.deltaTime));
                     Quaternion yawRot = Quaternion.Euler(0f, yaw, 0f);
                     Vector3 pivot = t.position + Vector3.up * 1.0f;

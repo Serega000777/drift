@@ -82,8 +82,8 @@ namespace DriftCareer.Runtime.UI
     /// </summary>
     public sealed class HudScreen : UiScreen
     {
-        private Label _chain, _mult, _event, _total, _speed, _units, _gear, _assist, _angleText, _toast, _hint, _drillTitle;
-        private VisualElement _angleNeedle, _drillBox, _drillFill, _integrityFill, _telemetryBox;
+        private Label _chain, _mult, _event, _total, _speed, _units, _gear, _assist, _angleText, _toast, _hint, _drillTitle, _timer, _credits;
+        private VisualElement _angleNeedle, _drillBox, _drillFill, _integrityFill, _telemetryBox, _top, _tiresBox, _angleBox, _buttonsBox;
         private Label _telemetry;
         private readonly VisualElement[] _tires = new VisualElement[4];
         private RpmGauge _gauge;
@@ -120,7 +120,10 @@ namespace DriftCareer.Runtime.UI
         protected override void Build()
         {
             var top = Ui.El("hud-top");
+            _top = top;
             top.pickingMode = PickingMode.Ignore;
+            _timer = Ui.Label("", "hud-mult");
+            top.Add(_timer);
             _chain = Ui.Label("", "hud-chain");
             _mult = Ui.Label("", "hud-mult");
             _event = Ui.Label("", "hud-event");
@@ -131,6 +134,8 @@ namespace DriftCareer.Runtime.UI
             var left = Ui.El("hud-left");
             _assist = Ui.Label("", "hud-assist");
             left.Add(_assist);
+            _credits = Ui.Label("", "hud-assist");
+            left.Add(_credits);
             _drillBox = Ui.El("hud-drill");
             _drillTitle = Ui.Label("", "dc-small");
             _drillBox.Add(_drillTitle);
@@ -152,6 +157,7 @@ namespace DriftCareer.Runtime.UI
             Root.Add(cluster);
 
             var angle = Ui.El("hud-angle");
+            _angleBox = angle;
             var abar = Ui.El("hud-angle-bar");
             _angleNeedle = Ui.El("hud-angle-needle");
             abar.Add(_angleNeedle);
@@ -161,6 +167,7 @@ namespace DriftCareer.Runtime.UI
             Root.Add(angle);
 
             var tires = Ui.El("hud-tires");
+            _tiresBox = tires;
             Vector2[] pos = { new Vector2(10, 0), new Vector2(80, 0), new Vector2(10, 100), new Vector2(80, 100) };
             for (int i = 0; i < 4; i++)
             {
@@ -176,6 +183,7 @@ namespace DriftCareer.Runtime.UI
             Root.Add(tires);
 
             var buttons = Ui.El("hud-buttons");
+            _buttonsBox = buttons;
             buttons.Add(Ui.Button(T("hud.pause"), () => Game.Pause(), "dc-btn--chip"));
             buttons.Add(Ui.Button(T("hud.camera"), () => Game.CycleCamera(), "dc-btn--chip"));
             buttons.Add(Ui.Button(T("hud.reset"), () => Game.ResetCar(false), "dc-btn--chip"));
@@ -302,7 +310,9 @@ namespace DriftCareer.Runtime.UI
             {
                 var tc = car.Health.tires[i];
                 float k = Mathf.InverseLerp(30f, 160f, tc.temperatureC);
-                Color c = k < 0.5f ? Color.Lerp(new Color(0.2f, 0.5f, 1f), new Color(0.25f, 0.85f, 0.4f), k * 2f) : Color.Lerp(new Color(0.25f, 0.85f, 0.4f), new Color(1f, 0.25f, 0.15f), (k - 0.5f) * 2f);
+                // Colorblind mode uses a blue -> white -> orange ramp instead of green/red.
+                Color cold = new Color(0.2f, 0.5f, 1f), ok = settings.colorblindHud ? new Color(0.95f, 0.95f, 0.95f) : new Color(0.25f, 0.85f, 0.4f), hot = settings.colorblindHud ? new Color(1f, 0.6f, 0f) : new Color(1f, 0.25f, 0.15f);
+                Color c = k < 0.5f ? Color.Lerp(cold, ok, k * 2f) : Color.Lerp(ok, hot, (k - 0.5f) * 2f);
                 c.a = Mathf.Lerp(0.95f, 0.35f, tc.wear);
                 _tires[i].style.backgroundColor = tc.blown ? new Color(0.1f, 0.1f, 0.1f) : c;
                 _tires[i].style.borderTopColor = _tires[i].style.borderBottomColor = _tires[i].style.borderLeftColor = _tires[i].style.borderRightColor =
@@ -313,6 +323,31 @@ namespace DriftCareer.Runtime.UI
             _integrityFill.style.backgroundColor = integrity > 0.6f ? new Color(0.24f, 0.86f, 0.52f) : integrity > 0.3f ? new Color(0.96f, 0.77f, 0f) : new Color(1f, 0.23f, 0.19f);
 
             _assist.text = T("hud.assist", T("settings.assist." + settings.assistPreset));
+            _credits.text = T("hud.credits", S.Profile.wallet.credits.ToString("N0"));
+
+            // Run timer / countdown / tandem score.
+            var clock = Game.Clock;
+            if (clock.Rules != null && clock.Rules.kind != RunKind.FreeDrive)
+            {
+                if (clock.Phase == RunPhase.Countdown) _timer.text = Mathf.CeilToInt(clock.CountdownLeft).ToString();
+                else if (clock.Phase == RunPhase.Running && clock.Time < 0.8f) _timer.text = T("hud.go");
+                else if (clock.Phase == RunPhase.Running)
+                {
+                    string time = T("hud.time") + " " + Mathf.CeilToInt(clock.Remaining);
+                    _timer.text = clock.Rules.kind == RunKind.GhostTandem ? time + "   " + T("hud.tandem", Mathf.RoundToInt(Game.Tandem.Score)) : time;
+                }
+                else _timer.text = "";
+            }
+            else _timer.text = "";
+
+            // HUD visibility/accessibility settings.
+            Root.style.opacity = settings.hudOpacity;
+            Ui.SetVisible(_chain, settings.showScore);
+            Ui.SetVisible(_mult, settings.showScore);
+            Ui.SetVisible(_total, settings.showScore);
+            Ui.SetVisible(_tiresBox, settings.showTireDiagram);
+            Ui.SetVisible(_angleBox, settings.showAngleMeter);
+            Ui.SetVisible(_buttonsBox, settings.showHudButtons);
             var drill = _session.Drift.Drill;
             Ui.SetVisible(_drillBox, drill != null);
             if (drill != null)

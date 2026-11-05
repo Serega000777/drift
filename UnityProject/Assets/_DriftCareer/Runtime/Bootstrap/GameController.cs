@@ -98,7 +98,7 @@ namespace DriftCareer.Runtime
             _hud.Bind(Session);
             HookSession();
             _ghostCar = GhostCar.Create(Session.transform);
-            GraphicsManager.Apply(services.Settings, services.Defaults, Cam.Cam);
+            ApplySettingsLive();
             Clock.Finished += OnRunFinished;
 
             Flow.TryTransition(GameState.MainMenu);
@@ -210,9 +210,12 @@ namespace DriftCareer.Runtime
             var s = Services.Settings;
             Services.Loc.SetLanguage(s.language);
             Cam.baseFov = s.fieldOfView;
+            Cam.distanceScale = s.chaseDistance;
+            Cam.heightScale = s.chaseHeight;
+            Cam.driftLookScale = s.driftLook;
             Session.Car.Assists.Settings = Services.AssistSettings();
             Session.Car.Health.Settings = s.health;
-            Session.Audio.SetVolumes(s.masterVolume, s.engineVolume, s.effectsVolume);
+            Session.Audio.SetVolumes(s.masterVolume, s.engineVolume, s.effectsVolume, s.tiresVolume);
             GraphicsManager.Apply(s, Services.Defaults, Cam.Cam);
             _hud.RefreshTouchVisibility();
         }
