@@ -20,6 +20,8 @@ namespace DriftCareer.Runtime.Vehicle
         public Transform hoodAnchor;
         public Transform bumperAnchor;
         public Transform steeringWheel;
+        /// <summary>Where the seated driver sits (procedural cars; model cars get an estimated anchor).</summary>
+        public Transform seatAnchor;
         public Transform[] wheelRoots = new Transform[4];
         public Transform[] exhausts = new Transform[0];
         public Renderer[] brakeLights = new Renderer[0];
@@ -143,12 +145,15 @@ namespace DriftCareer.Runtime.Vehicle
 
             // Interior: seat, dashboard, steering wheel and the cockpit camera anchor.
             var seatMat = MaterialLibrary.LitColor("car_seat", new Color(0.1f, 0.1f, 0.11f), 0.2f);
-            ProceduralMeshes.Spawn("Seat", bodyRoot, ProceduralMeshes.Box(new Vector3(0.5f, 0.45f, 0.55f)), seatMat, new Vector3(-0.37f, 0.35f, -0.45f), Quaternion.identity);
-            ProceduralMeshes.Spawn("SeatBack", bodyRoot, ProceduralMeshes.Box(new Vector3(0.5f, 0.65f, 0.12f)), seatMat, new Vector3(-0.37f, 0.6f, -0.78f), Quaternion.Euler(-12f, 0f, 0f));
+            ProceduralMeshes.Spawn("Seat", bodyRoot, ProceduralMeshes.Box(new Vector3(0.5f, 0.2f, 0.55f)), seatMat, new Vector3(-0.37f, 0.18f, -0.45f), Quaternion.identity);
+            ProceduralMeshes.Spawn("SeatBack", bodyRoot, ProceduralMeshes.Box(new Vector3(0.5f, 0.65f, 0.12f)), seatMat, new Vector3(-0.37f, 0.36f, -0.76f), Quaternion.Euler(-12f, 0f, 0f));
+            seatAnchor = new GameObject("SeatAnchor").transform;
+            seatAnchor.SetParent(bodyRoot, false);
+            seatAnchor.localPosition = new Vector3(-0.37f, 0.38f, -0.48f);
             ProceduralMeshes.Spawn("Dash", bodyRoot, ProceduralMeshes.Box(new Vector3(width * 0.78f, 0.22f, 0.35f)), trim, new Vector3(0f, 0.72f, 0.55f), Quaternion.identity);
             steeringWheel = new GameObject("SteeringWheel").transform;
             steeringWheel.SetParent(bodyRoot, false);
-            steeringWheel.localPosition = new Vector3(-0.37f, 0.92f, 0.32f);
+            steeringWheel.localPosition = new Vector3(-0.37f, 0.86f, 0.1f);
             var rimMesh = ProceduralMeshes.Tire(0.18f, 0.16f, 0.03f, 20);
             ProceduralMeshes.Spawn("Rim", steeringWheel, rimMesh, trim, Vector3.zero, Quaternion.Euler(0f, 90f, 0f), false);
             cockpitAnchor = new GameObject("CockpitAnchor").transform;
@@ -369,6 +374,9 @@ namespace DriftCareer.Runtime.Vehicle
             rig.bumperAnchor.localPosition = new Vector3(0f, 0.55f, Mathf.Max(1.8f, a.lengthM * 0.5f));
             rig.doorPivot = new GameObject("DoorPivot").transform;
             rig.doorPivot.SetParent(rig.bodyRoot, false);
+            rig.seatAnchor = new GameObject("SeatAnchor").transform;
+            rig.seatAnchor.SetParent(rig.bodyRoot, false);
+            rig.seatAnchor.localPosition = new Vector3(-0.37f, h * 0.3f, -0.45f);
             rig.partsRoot = new GameObject("Parts").transform;
             rig.partsRoot.SetParent(rig.bodyRoot, false);
             return rig;

@@ -160,6 +160,37 @@ namespace DriftCareer.Runtime.Track
             });
         }
 
+        /// <summary>Low-poly UV sphere centered at origin (optionally only the upper hemisphere).</summary>
+        public static Mesh Sphere(float radius, int segments = 16, bool hemisphere = false)
+        {
+            return Cached($"sphere_{radius}_{segments}_{hemisphere}", () =>
+            {
+                var v = new List<Vector3>(); var t = new List<int>();
+                int rings = segments / 2;
+                int startRing = hemisphere ? rings / 2 : 0;
+                for (int r = startRing; r <= rings; r++)
+                {
+                    float phi = Mathf.PI * r / rings; // 0 = bottom
+                    float y = -Mathf.Cos(phi) * radius, rr = Mathf.Sin(phi) * radius;
+                    for (int sIdx = 0; sIdx <= segments; sIdx++)
+                    {
+                        float th = 2f * Mathf.PI * sIdx / segments;
+                        v.Add(new Vector3(Mathf.Cos(th) * rr, y, Mathf.Sin(th) * rr));
+                    }
+                }
+                int stride = segments + 1, count = rings - startRing;
+                for (int r = 0; r < count; r++)
+                for (int sIdx = 0; sIdx < segments; sIdx++)
+                {
+                    int a = r * stride + sIdx, b = a + stride;
+                    // Clockwise when seen from outside (Unity front faces).
+                    t.Add(a); t.Add(b + 1); t.Add(a + 1);
+                    t.Add(a); t.Add(b); t.Add(b + 1);
+                }
+                return Build(v, t);
+            });
+        }
+
         // ---------------- helpers ----------------
 
         public static Mesh Build(List<Vector3> v, List<int> t)

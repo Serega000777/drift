@@ -42,6 +42,53 @@
     "progress": "{0} / {1}",
     "title": "Challenges"
   },
+  "character": {
+    "body": {
+      "Regular": "Regular",
+      "Slim": "Slim",
+      "Strong": "Strong"
+    },
+    "body_label": "Body type",
+    "color_primary": "Primary color",
+    "color_secondary": "Secondary color",
+    "custom_model": "Your own driver model",
+    "custom_model_pc": "On PC: Unity → Drift Career → Custom Character Import. The model will appear here.",
+    "custom_model_soon": "Uploading your own model will come through a moderated service. For now build your driver here.",
+    "face": {
+      "0": "Calm",
+      "1": "Narrow",
+      "2": "Brows",
+      "3": "Beard"
+    },
+    "face_label": "Face",
+    "gear": "Gear",
+    "hair": {
+      "0": "Bald",
+      "1": "Short",
+      "2": "Buzz",
+      "3": "Long",
+      "4": "Ponytail",
+      "5": "Mohawk"
+    },
+    "hair_color": "Hair color",
+    "hair_style": "Hairstyle",
+    "height": "Height",
+    "preset": {
+      "default": "Basic",
+      "garage": "Mechanic",
+      "pro": "Pro",
+      "street": "Street"
+    },
+    "skin": "Skin tone",
+    "slot": {
+      "Accessory": "Accessory",
+      "Bottom": "Bottom",
+      "Gloves": "Gloves",
+      "Head": "Head",
+      "Shoes": "Shoes",
+      "Top": "Top"
+    }
+  },
   "common": {
     "apply": "Apply",
     "back": "Back",
@@ -239,6 +286,44 @@
     "title": "Garage",
     "underglow": "Underglow"
   },
+  "gear": {
+    "acc": {
+      "glasses": "Glasses",
+      "hans": "HANS device",
+      "headphones": "Headphones",
+      "none": "None"
+    },
+    "bottom": {
+      "cargo": "Cargo pants",
+      "jeans": "Jeans",
+      "race_suit": "Race suit (legs)",
+      "shorts": "Shorts"
+    },
+    "gloves": {
+      "fingerless": "Fingerless",
+      "none": "No gloves",
+      "race": "Racing gloves"
+    },
+    "head": {
+      "beanie": "Beanie",
+      "cap": "Cap",
+      "helmet_full": "Full-face helmet",
+      "helmet_open": "Open-face helmet",
+      "none": "Nothing"
+    },
+    "shoes": {
+      "boots": "Boots",
+      "race": "Racing shoes",
+      "sneakers": "Sneakers"
+    },
+    "top": {
+      "hoodie": "Hoodie",
+      "jacket": "Jacket",
+      "mechanic": "Work jacket",
+      "race_suit": "Race suit",
+      "tshirt": "T-shirt"
+    }
+  },
   "hud": {
     "angle": "Angle",
     "assist": "Assists: {0}",
@@ -291,6 +376,37 @@
     "figure_eight": "Figure eight",
     "gymkhana": "Gymkhana",
     "slalom": "Slalom"
+  },
+  "loading": {
+    "stage": {
+      "car": "Car and driver",
+      "hangar": "Hangar",
+      "lighting": "Lighting and sky",
+      "lot": "Asphalt lot",
+      "markings": "Practice zones",
+      "obstacles": "Obstacles",
+      "perimeter": "Barriers and tire walls",
+      "ready": "Ready",
+      "reflections": "Reflections",
+      "scenery": "Scenery",
+      "services": "Starting systems",
+      "track": "Preparing the run",
+      "ui": "Interface"
+    },
+    "tip": {
+      "1": "The handbrake breaks the rear loose — countersteer at once and feather the throttle.",
+      "10": "Assists only adjust steering and throttle — the car physics stay honest.",
+      "11": "A blown tire pulls the car towards its side — just like in real life.",
+      "12": "A korch is a swap, welded diff, angle kit and stripped interior. Try 'Make it a korch' in the garage.",
+      "2": "Transition: lift, let the car swing, then catch it with throttle the other way.",
+      "3": "Angle gives points, speed multiplies them. Hitting a wall resets the chain.",
+      "4": "Overheated tires grip less. Watch the tire diagram in the corner.",
+      "5": "A welded diff makes slides easier to hold but hurts grip cornering.",
+      "6": "More steering lock means more angle before a spin.",
+      "7": "Wider rear tires grip more — sometimes that's a drawback for drifting.",
+      "8": "Place your own cones and clipping points in the layout editor.",
+      "9": "Your best Score Attack run becomes the ghost for tandem."
+    }
   },
   "main": {
     "best_chain": "Best chain",
@@ -369,6 +485,10 @@
     "pro_series": {
       "desc": "In partnership with organisers.",
       "title": "Pro Series"
+    },
+    "profile": {
+      "desc": "Driver, gear, records, wallet, account and privacy.",
+      "title": "Personal Account"
     },
     "score_attack": {
       "desc": "90 seconds — max points.",
@@ -562,6 +682,26 @@
     "policy_text": "Version 2026-11 (draft, to be reviewed by a lawyer before release).\n\n• What we store: settings, progress, tuning, layouts and run recordings — on your device only.\n• What we do not collect: name, e-mail, phone, contacts, precise location.\n• The install ID is random and not tied to your hardware.\n• Sign-in tokens are stored encrypted and never written to logs.\n• Optional data (crash reports, statistics, ads, marketing) only with your consent, which you can withdraw any time.\n• Your rights: export all your data and delete it in Account → Privacy.\n• Children under 13: chat, publishing and personalized ads are disabled."
   },
   "profile": {
+    "account": {
+      "cross_note": "One account on phone, PC and console: earned progress is shared, real-money purchases follow each store's rules.",
+      "id": "Account ID",
+      "last_error": "Last error",
+      "offline": "not connected (local mode)",
+      "online": "connected",
+      "platform": "Sign-in platform",
+      "server": "Account server",
+      "sign_out_confirm": "Sign out? Progress on this device stays.",
+      "status": "Status"
+    },
+    "cap": {
+      "chat": "Text chat",
+      "leaderboards": "Nickname on leaderboards",
+      "models": "Own 3D model import",
+      "purchases": "Purchases",
+      "ugc": "Publishing tracks and cars"
+    },
+    "edit_nickname": "Edit nickname",
+    "level": "Level {0}",
     "nick_error": {
       "InvalidCharacters": "Letters, digits, space, _ - . only",
       "LooksLikePersonalData": "Looks like personal data (e-mail/phone)",
@@ -571,7 +711,68 @@
       "TooShort": "Nickname is too short"
     },
     "nickname": "Nickname",
-    "nickname_hint": "3–20 characters. Don't use your real name, e-mail or phone."
+    "nickname_hint": "3–20 characters. Don't use your real name, e-mail or phone.",
+    "no_records": "No records yet — finish any timed mode.",
+    "privacy": {
+      "age": {
+        "Adult": "18+",
+        "Teen": "13–17",
+        "Under13": "under 13",
+        "Unknown": "not set"
+      },
+      "age_label": "Age group",
+      "change_age": "Change age",
+      "effective": "What is enabled now",
+      "erase": "Delete all my data",
+      "erase_confirm": "Delete all progress, tuning, layouts, recordings and sign-in on this device?",
+      "erase_confirm2": "This cannot be undone. Delete for sure?",
+      "erasing": "Deleting data…",
+      "export": "Export my data",
+      "exported": "Your data was saved to:\n{0}\n\nTokens and keys are never included.",
+      "policy_label": "Accepted policy"
+    },
+    "saved": "Saved",
+    "security": {
+      "install_id": "Install ID (random)",
+      "integrity": "Save integrity",
+      "integrity_bad": "edited outside the game — online records disabled",
+      "integrity_ok": "OK (signature valid)",
+      "note": "We will never ask for your platform password. Never share sign-in codes.",
+      "saves": "Saves",
+      "saves_value": "HMAC-signed, atomic writes, backup",
+      "sign_out_all": "Sign out everywhere",
+      "sign_out_all_note": "Available once the account server is live.",
+      "tokens": "Sign-in tokens",
+      "tokens_value": "encrypted, never logged"
+    },
+    "stat": {
+      "best_chain": "Best chain",
+      "cars": "Cars owned",
+      "challenges": "Challenges completed",
+      "distance": "Distance driven",
+      "earned": "Earned in total",
+      "member_since": "Member since",
+      "parts": "Parts owned",
+      "playtime": "Play time",
+      "points": "Total drift points"
+    },
+    "tab": {
+      "Account": "Account",
+      "Driver": "Driver",
+      "Overview": "Overview",
+      "Privacy": "Privacy",
+      "Records": "Records",
+      "Security": "Security",
+      "Wallet": "Wallet"
+    },
+    "wallet": {
+      "balance": "Balance",
+      "earned": "Earned",
+      "empty": "No transactions yet",
+      "history": "Transaction history",
+      "note": "Credits are earned only by playing and are not sold for real money.",
+      "spent": "Spent"
+    }
   },
   "results": {
     "best": "Best: {0}",
@@ -866,6 +1067,21 @@
     "placeholder_rwd": {
       "desc": "The Academy's rear-wheel-drive training car.",
       "title": "Prototype RWD"
+    }
+  },
+  "wallet": {
+    "reason": {
+      "car": "Car purchase",
+      "chain": "Drift chain",
+      "challenge": "Challenge",
+      "drill": "Drill",
+      "entry_fee": "Tournament entry",
+      "gear": "Driver gear",
+      "other": "Other",
+      "parts": "Tuning parts",
+      "purchase": "Purchase",
+      "run": "Timed run",
+      "tournament": "Tournament"
     }
   }
 }

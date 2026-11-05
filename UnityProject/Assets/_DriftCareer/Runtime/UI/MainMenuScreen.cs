@@ -206,6 +206,7 @@ namespace DriftCareer.Runtime.UI
                     if (s.targetId == "garage") Game.OpenGarage();
                     else if (s.targetId == "settings") Game.OpenSettings();
                     else if (s.targetId == "challenges") Game.OpenChallenges();
+                    else if (s.targetId == "profile") Game.OpenProfile();
                     else OpenDetail(s);
                     break;
             }

@@ -144,11 +144,13 @@ namespace DriftCareer.Runtime.UI
                         if (!S.Profile.wallet.Spend(price, "wallet.reason.car")) { UiRoot.Toast(T("garage.not_enough")); return; }
                         S.Profile.ownedVehicles.Add(id);
                     }
-                    Game.SwitchVehicle(id);
-                    _draft = Saved.Clone();
-                    _savedStats = null;
-                    RequestStats(true);
-                    Rebuild();
+                    Game.SwitchVehicle(id, () =>
+                    {
+                        _draft = Saved.Clone();
+                        _savedStats = null;
+                        RequestStats(true);
+                        Rebuild();
+                    });
                 };
                 var b = Ui.Button(label, act, "dc-btn--chip");
                 b.SetEnabled(!selected);

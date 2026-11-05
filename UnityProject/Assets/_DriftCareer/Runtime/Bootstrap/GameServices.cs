@@ -133,6 +133,7 @@ namespace DriftCareer.Runtime
             Account = new LocalAccountService(PlatformPolicy.DefaultStore(Device.kind));
             Auth = new AuthService(new OfflineAuthBackend(), Secure);
             Auth.Restore();
+            LoadUserCharacters();
             Challenges = new ChallengeTracker(Profile.challenges, DateTime.UtcNow);
             Input = new InputRouter { Settings = Settings };
             foreach (var w in StartupWarnings) SafeLog.Warn(w);
@@ -167,6 +168,21 @@ namespace DriftCareer.Runtime
 
         /// <summary>Base physics for a catalog vehicle ("spec:&lt;template&gt;" or the placeholder).</summary>
         public readonly Dictionary<string, CustomVehicleManifest> UserCars = new Dictionary<string, CustomVehicleManifest>(StringComparer.Ordinal);
+        /// <summary>Imported driver models (id -> display name), PC/editor pipeline only.</summary>
+        public readonly Dictionary<string, string> UserCharacters = new Dictionary<string, string>(StringComparer.Ordinal);
+        public const string UserCharactersResources = "DriftCareer/UserCharacters";
+
+        private void LoadUserCharacters()
+        {
+            if (!Policy.allowUserModelImport) return;
+            foreach (var asset in Resources.LoadAll<TextAsset>(UserCharactersResources))
+            {
+                if (!JsonParser.TryParse(asset.text, out var j, out var err)) { StartupWarnings.Add("user character " + asset.name + ": " + err); continue; }
+                string id = j.GetString("id", "");
+                if (!j.GetBool("rights") || string.IsNullOrEmpty(id)) continue;
+                UserCharacters[id] = j.GetString("name", id);
+            }
+        }
         public const string UserCarsResources = "DriftCareer/UserCars";
 
         /// <summary>

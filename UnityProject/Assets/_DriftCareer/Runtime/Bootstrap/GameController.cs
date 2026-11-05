@@ -1,11 +1,14 @@
 using System;
+using System.Collections;
 using DriftCareer.Core;
 using DriftCareer.Core.Assists;
 using DriftCareer.Core.Gameplay;
 using DriftCareer.Core.Garage;
 using DriftCareer.Core.Layout;
 using DriftCareer.Core.Persistence;
+using DriftCareer.Core.Character;
 using DriftCareer.Runtime.Cameras;
+using DriftCareer.Runtime.Character;
 using DriftCareer.Runtime.Gameplay;
 using DriftCareer.Runtime.Input;
 using DriftCareer.Runtime.LayoutEditor;
@@ -44,9 +47,12 @@ namespace DriftCareer.Runtime
         private ResultsScreen _results;
         private ChallengesScreen _challenges;
         private OnboardingScreen _onboarding;
+        private ProfileScreen _profile;
         private readonly GhostRecorder _recorder = new GhostRecorder();
         private GhostRecording _ghost;
         private GhostCar _ghostCar;
+        private CharacterRig _pilot;
+        private CharacterRig _driver;
         private readonly TandemScoring _tandem = new TandemScoring();
         private ObstacleLayout _savedPlayerLayout;
         private bool _handbrakeLatched;
@@ -59,7 +65,16 @@ namespace DriftCareer.Runtime
         public TandemScoring Tandem => _tandem;
         public GhostRecording Ghost => _ghost;
 
+        public bool Ready { get; private set; }
+
+        /// <summary>Synchronous boot (tests/tools). The game uses <see cref="BootRoutine"/> with the loading screen.</summary>
         public void Boot(GameServices services)
+        {
+            var r = BootRoutine(services);
+            while (r.MoveNext()) { }
+        }
+
+        public IEnumerator BootRoutine(GameServices services)
         {
             Services = services;
             Time.fixedDeltaTime = 0.01f;
@@ -79,6 +94,11 @@ namespace DriftCareer.Runtime
             Cam = CameraRig.Create(transform);
             Cam.baseFov = services.Settings.fieldOfView;
             Ui = UiRoot.Create(this, transform, services.Defaults.uiScale * services.Settings.hudScale);
+            Ui.Loading.Show(true);
+            Ui.Loading.SetProgress(0.02f, "loading.stage.services");
+            yield return null;
+
+            Ui.Loading.SetProgress(0.04f, "loading.stage.ui");
             _hud = Ui.Register(new HudScreen(), true);
             _menu = Ui.Register(new MainMenuScreen());
             _pause = Ui.Register(new PauseScreen());
@@ -88,12 +108,16 @@ namespace DriftCareer.Runtime
             _results = Ui.Register(new ResultsScreen());
             _challenges = Ui.Register(new ChallengesScreen());
             _onboarding = Ui.Register(new OnboardingScreen());
+            _profile = Ui.Register(new ProfileScreen());
             services.Loc.LanguageChanged += _ => Ui.RebuildAll();
             services.Input.DeviceChanged += _ => _hud.RefreshTouchVisibility();
             services.Challenges.Completed += d => Ui.Toast(services.Loc.Format("hud.challenge_done", d.reward), 2.5f, "#3DDC84");
+            yield return null;
 
             float quality = QualityScale();
-            Session = TrackSession.BuildAcademy(services, quality);
+            var build = TrackSession.BuildAcademyRoutine(services, quality, s => Session = s, (p, key) => Ui.Loading.SetProgress(0.05f + p * 0.9f, key));
+            while (build.MoveNext()) yield return build.Current;
+
             Editor = Session.gameObject.AddComponent<LayoutEditorController>();
             Editor.Initialize(Session, Cam);
             Editor.Status += (key, detail) => Ui.Toast(services.Loc.Format(key, detail != null ? services.T(detail) : ""), 1.8f, "#FF3B30");
@@ -102,13 +126,18 @@ namespace DriftCareer.Runtime
             _hud.Bind(Session);
             HookSession();
             _ghostCar = GhostCar.Create(Session.transform);
+            RefreshCharacters(services.Profile.character);
             ApplySettingsLive();
             Clock.Finished += OnRunFinished;
-
             Flow.TryTransition(GameState.MainMenu);
             ShowMenuBackdrop();
-            if (services.Privacy.NeedsOnboarding) ShowOnboarding(() => ShowOnly(_menu));
-            else ShowOnly(_menu);
+            Ready = true;
+
+            Ui.Loading.Hide(() =>
+            {
+                if (services.Privacy.NeedsOnboarding) ShowOnboarding(() => ShowOnly(_menu));
+                else ShowOnly(_menu);
+            }, 1.6f);
         }
 
         private float QualityScale()
@@ -145,7 +174,7 @@ namespace DriftCareer.Runtime
 
         private void ShowOnly(UiScreen screen)
         {
-            foreach (var s in new UiScreen[] { _menu, _pause, _garage, _settings, _editorScreen, _results, _challenges, _onboarding })
+            foreach (var s in new UiScreen[] { _menu, _pause, _garage, _settings, _editorScreen, _results, _challenges, _onboarding, _profile })
                 if (s != screen && s.Visible) s.Hide();
             if (screen != null && !screen.Visible) screen.Show();
             bool hud = Flow.State == GameState.Driving || Flow.State == GameState.Intro;
@@ -171,12 +200,15 @@ namespace DriftCareer.Runtime
         public void OpenGarage()
         {
             if (!Flow.TryTransition(GameState.Garage)) return;
-            Time.timeScale = 1f;
-            Session.Car.SetFrozen(true);
-            Cam.showroomAutoRotate = false;
-            Cam.showroomDistance = 6.5f;
-            Cam.SetMode(RigMode.Showroom);
-            ShowOnly(_garage);
+            Ui.Wipe(() =>
+            {
+                Time.timeScale = 1f;
+                Session.Car.SetFrozen(true);
+                Cam.showroomAutoRotate = false;
+                Cam.showroomDistance = 6.5f;
+                Cam.SetMode(RigMode.Showroom, true);
+                ShowOnly(_garage);
+            });
         }
 
         public void CloseGarage()
@@ -234,14 +266,88 @@ namespace DriftCareer.Runtime
         /// <summary>Applies the garage tuning to the live car (try-on).</summary>
         public void PreviewTuning(VehicleTuningState t) => Session.ApplyTuning(Services.BaseProfile, t);
 
-        public void SwitchVehicle(string vehicleId)
+        // ---------------------------------------------------------------- driver character
+
+        /// <summary>Rebuilds the standing pilot (hangar) and the seated driver (inside the car).</summary>
+        public void RefreshCharacters(CharacterAppearance a)
         {
-            Services.SelectVehicle(vehicleId);
-            Session.BuildCar(Services, QualityScale());
-            Cam.SetTarget(Session.Car, Session.Rig);
-            _hud.Bind(Session);
-            HookSession();
-            Session.Car.SetFrozen(true);
+            if (_pilot == null)
+            {
+                _pilot = CharacterRig.Create(Session.transform, CharacterPose.Standing);
+                Vector3 spawn = Session.World.spawnPosition;
+                _pilot.transform.position = new Vector3(spawn.x + 2.7f, Session.World.spawnPosition.y - 0.02f, spawn.z + 0.6f);
+                _pilot.transform.rotation = Quaternion.Euler(0f, -110f, 0f);
+            }
+            GameObject custom = !string.IsNullOrEmpty(a.customModelId) && Services.UserCharacters.ContainsKey(a.customModelId)
+                ? Resources.Load<GameObject>(GameServices.UserCharactersResources + "/" + a.customModelId) : null;
+            if (custom != null) _pilot.UseCustomModel(custom, a.height * CharacterCatalog.BaseHeightM);
+            else _pilot.Build(a);
+
+            if (_driver != null) Destroy(_driver.gameObject);
+            var seat = Session.Rig.seatAnchor != null ? Session.Rig.seatAnchor : Session.Rig.bodyRoot;
+            _driver = CharacterRig.Create(seat, CharacterPose.Seated);
+            _driver.transform.localScale = Vector3.one * 0.88f;
+            _driver.Build(a);
+            TrackSession.SetLayerRecursive(_driver.gameObject, 2);
+            UpdateCharacterVisibility();
+        }
+
+        public void PreviewCharacter(CharacterAppearance a) => RefreshCharacters(a);
+
+        private void UpdateCharacterVisibility()
+        {
+            bool driving = Flow.State == GameState.Driving || Flow.State == GameState.Intro || Flow.State == GameState.Paused || Flow.State == GameState.LayoutEditor;
+            if (_pilot != null) _pilot.gameObject.SetActive(!driving);
+            if (_driver != null) _driver.gameObject.SetActive(driving && Cam.Mode != RigMode.Cockpit && Cam.Mode != RigMode.Cinematic);
+        }
+
+        /// <summary>Showroom camera on the pilot (personal account / driver tab) or back on the car.</summary>
+        public void FocusPilot(bool focus)
+        {
+            if (_pilot == null) return;
+            Cam.showroomTarget = focus ? _pilot.transform : null;
+            Cam.showroomDistance = focus ? 3.4f : 7.5f;
+            Cam.showroomPivotHeight = focus ? 1.0f : 0.7f;
+            Cam.showroomAutoRotate = !focus;
+            if (focus) Cam.showroomYaw = _pilot.transform.eulerAngles.y + 180f + 25f;
+        }
+
+        public void OpenProfile()
+        {
+            if (Flow.State != GameState.MainMenu) return;
+            Ui.Wipe(() => ShowOnly(_profile));
+        }
+
+        public void CloseProfile() => Ui.Wipe(() => { ShowOnly(_menu); ShowMenuBackdrop(); });
+
+        /// <summary>Right to erasure: wipes local data and secrets, then reboots into the first-run flow.</summary>
+        public void EraseAllDataAndRestart()
+        {
+            Ui.Loading.Show(false);
+            Ui.Loading.SetProgress(0.5f, "profile.privacy.erasing");
+            Ui.Root.schedule.Execute(() =>
+            {
+                Services.EraseAllPlayerData();
+                Session.Unload();
+                GameBootstrap.Restart();
+            }).StartingIn(200);
+        }
+
+        public void SwitchVehicle(string vehicleId, Action done = null)
+        {
+            Ui.Loading.Show(false);
+            Ui.Loading.SetProgress(0.3f, "loading.stage.car");
+            Ui.Root.schedule.Execute(() =>
+            {
+                Services.SelectVehicle(vehicleId);
+                Session.BuildCar(Services, QualityScale());
+                Cam.SetTarget(Session.Car, Session.Rig);
+                _hud.Bind(Session);
+                HookSession();
+                RefreshCharacters(Services.Profile.character);
+                Session.Car.SetFrozen(true);
+                Ui.Loading.Hide(done, 0.5f);
+            }).StartingIn(80);
         }
 
         // ---------------------------------------------------------------- driving
@@ -256,14 +362,13 @@ namespace DriftCareer.Runtime
             }
             if (!Flow.TryTransition(GameState.Loading)) return;
             _pendingMode = modeId;
-            Ui.Fade(true, () =>
+            Ui.Wipe(() =>
             {
                 ConfigureRun(_pendingMode);
                 Session.Car.SetFrozen(false);
                 Session.ResetCar(false);
                 Session.Obstacles.ResetDynamic();
                 Skidmarks.Instance?.Clear();
-                Ui.Fade(false);
                 if (Services.Settings.playIntro && CurrentRun == RunKind.FreeDrive && Flow.Previous != GameState.Garage)
                 {
                     Flow.TryTransition(GameState.Intro);
@@ -455,10 +560,9 @@ namespace DriftCareer.Runtime
             Clock.Finish();
             RestorePlayerLayout();
             Services.SaveProfile();
-            Ui.Fade(true, () =>
+            Ui.Wipe(() =>
             {
                 Flow.TryTransition(GameState.MainMenu);
-                Ui.Fade(false);
                 ShowOnly(_menu);
                 ShowMenuBackdrop();
             });
@@ -499,7 +603,7 @@ namespace DriftCareer.Runtime
 
         private void Update()
         {
-            if (Services == null) return;
+            if (Services == null || !Ready) return;
             float dt = Time.unscaledDeltaTime;
             var input = Services.Input;
             input.Update(dt);
@@ -536,6 +640,7 @@ namespace DriftCareer.Runtime
                         break;
                 }
 
+            UpdateCharacterVisibility();
             if (Flow.State == GameState.Driving)
                 DriveTick(Time.deltaTime);
             else if (Flow.State == GameState.Intro && Intro.InRollOut)

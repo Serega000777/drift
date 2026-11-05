@@ -32,6 +32,9 @@ namespace DriftCareer.Runtime.Cameras
         public float showroomPitch = 12f;
         public float showroomDistance = 7f;
         public bool showroomAutoRotate = true;
+        /// <summary>Optional showroom focus (e.g. the driver character); null = the car.</summary>
+        public Transform showroomTarget;
+        public float showroomPivotHeight = 0.7f;
 
         private VehicleController _car;
         private CarRig _rig;
@@ -168,7 +171,7 @@ namespace DriftCareer.Runtime.Cameras
                 {
                     if (showroomAutoRotate) showroomYaw += 8f * Time.unscaledDeltaTime;
                     Quaternion r = Quaternion.Euler(showroomPitch, showroomYaw, 0f);
-                    Vector3 pivot = t.position + Vector3.up * 0.7f;
+                    Vector3 pivot = (showroomTarget != null ? showroomTarget.position : t.position) + Vector3.up * showroomPivotHeight;
                     pos = pivot + r * new Vector3(0f, 0f, -showroomDistance);
                     rot = Quaternion.LookRotation(pivot - pos, Vector3.up);
                     fov = 40f;
