@@ -149,6 +149,11 @@ namespace DriftCareer.Core.Persistence
         public Dictionary<string, ChallengeProgress> challenges = new Dictionary<string, ChallengeProgress>(StringComparer.Ordinal);
         public Dictionary<string, float> bestScores = new Dictionary<string, float>(StringComparer.Ordinal);
         public Dictionary<string, int> bestMedals = new Dictionary<string, int>(StringComparer.Ordinal);
+        /// <summary>Set once a save failed signature verification (edited outside the game). Sticky: online records are not trusted.</summary>
+        public bool integrityCompromised;
+        /// <summary>Public nickname (validated by PlayerIdentity). Empty = default "Drifter-XXXX".</summary>
+        public string nickname = "";
+        public Character.CharacterAppearance character = new Character.CharacterAppearance();
 
         public bool RecordScore(string key, float score, Medal medal)
         {
@@ -371,7 +376,11 @@ namespace DriftCareer.Core.Persistence
                 .Set("playTime", p.playTimeSec).Set("lastLayout", p.lastLayoutName ?? "").Set("customVehicles", customs)
                 .Set("credits", JsonValue.Number((double)p.wallet.credits)).Set("earned", JsonValue.Number((double)p.wallet.lifetimeEarned))
                 .Set("owned", StringArray(p.ownedItems)).Set("vehicles", StringArray(p.ownedVehicles))
-                .Set("challenges", EncodeChallenges(p)).Set("best", EncodeFloats(p.bestScores)).Set("medals", EncodeInts(p.bestMedals));
+                .Set("challenges", EncodeChallenges(p)).Set("best", EncodeFloats(p.bestScores)).Set("medals", EncodeInts(p.bestMedals))
+                .Set("integrity", !p.integrityCompromised)
+                .Set("nickname", p.nickname ?? "").Set("spent", JsonValue.Number((double)p.wallet.lifetimeSpent))
+                .Set("walletHistory", EncodeHistory(p.wallet))
+                .Set("character", Character.CharacterJson.Encode(p.character ?? new Character.CharacterAppearance()));
         }
 
         private static JsonValue StringArray(IEnumerable<string> items)
@@ -393,6 +402,15 @@ namespace DriftCareer.Core.Persistence
             var o = JsonValue.NewObject();
             foreach (var kv in d) o.Set(kv.Key, kv.Value);
             return o;
+        }
+
+        private static JsonValue EncodeHistory(Wallet w)
+        {
+            var a = JsonValue.NewArray();
+            foreach (var t in w.history)
+                a.Add(JsonValue.NewObject().Set("utc", t.utc ?? "").Set("amount", JsonValue.Number((double)t.amount))
+                    .Set("balance", JsonValue.Number((double)t.balanceAfter)).Set("reason", t.reason ?? ""));
+            return a;
         }
 
         private static JsonValue EncodeChallenges(PlayerProfile p)
@@ -461,6 +479,23 @@ namespace DriftCareer.Core.Persistence
                 }
             var best = j.GetObject("best");
             if (best != null) foreach (var k in best.Keys) p.bestScores[k] = MathUtil.Max(0f, best.GetFloat(k));
+            p.integrityCompromised = !j.GetBool("integrity", true);
+            p.nickname = Account.PlayerIdentity.Sanitize(j.GetString("nickname", "")) ?? "";
+            var ch2 = j.GetObject("character");
+            if (ch2 != null) p.character = Character.CharacterJson.Decode(ch2);
+            var spent = j["spent"];
+            if (spent != null && spent.Type == JsonType.Number) p.wallet.lifetimeSpent = (long)Math.Max(0, Math.Min(1e13, spent.AsDouble));
+            var hist = j.GetArray("walletHistory");
+            if (hist != null)
+                foreach (var h in hist.Items)
+                {
+                    if (!h.IsObject || p.wallet.history.Count >= Wallet.HistoryLimit) continue;
+                    p.wallet.history.Add(new WalletTransaction
+                    {
+                        utc = h.GetString("utc", ""), amount = (long)(h["amount"]?.Type == JsonType.Number ? h["amount"].AsDouble : 0),
+                        balanceAfter = (long)(h["balance"]?.Type == JsonType.Number ? h["balance"].AsDouble : 0), reason = h.GetString("reason", "wallet.reason.other")
+                    });
+                }
             var medals = j.GetObject("medals");
             if (medals != null) foreach (var k in medals.Keys) p.bestMedals[k] = MathUtil.Clamp(medals.GetInt(k), 0, 3);
             return p;

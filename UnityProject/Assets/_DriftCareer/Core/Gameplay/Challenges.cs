@@ -153,7 +153,7 @@ namespace DriftCareer.Core.Gameplay
             var p = Progress(d);
             if (!p.completed || p.claimed) return 0;
             p.claimed = true;
-            wallet.Earn(d.reward);
+            wallet.Earn(d.reward, "wallet.reason.challenge");
             return d.reward;
         }
     }

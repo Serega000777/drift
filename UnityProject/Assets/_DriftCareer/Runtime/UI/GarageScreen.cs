@@ -141,7 +141,7 @@ namespace DriftCareer.Runtime.UI
                     if (selected) return;
                     if (!owned)
                     {
-                        if (!S.Profile.wallet.Spend(price)) { UiRoot.Toast(T("garage.not_enough")); return; }
+                        if (!S.Profile.wallet.Spend(price, "wallet.reason.car")) { UiRoot.Toast(T("garage.not_enough")); return; }
                         S.Profile.ownedVehicles.Add(id);
                     }
                     Game.SwitchVehicle(id);

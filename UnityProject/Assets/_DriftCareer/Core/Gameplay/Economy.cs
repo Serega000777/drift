@@ -9,26 +9,51 @@ namespace DriftCareer.Core.Gameplay
     /// wallet (see Account) and never buys handling advantages that are not also earnable (no pay-to-win).
     /// </summary>
     [Serializable]
+    public struct WalletTransaction
+    {
+        public string utc;
+        public long amount;
+        public long balanceAfter;
+        /// <summary>Localization key of the reason ("wallet.reason.chain", ...).</summary>
+        public string reason;
+    }
+
+    [Serializable]
     public sealed class Wallet
     {
+        public const int HistoryLimit = 60;
+
         public long credits;
         /// <summary>Lifetime earned, for stats/anti-cheat sanity checks.</summary>
         public long lifetimeEarned;
+        public long lifetimeSpent;
+        /// <summary>Most recent transactions first (shown in the personal account).</summary>
+        public List<WalletTransaction> history = new List<WalletTransaction>();
 
         public bool CanAfford(long price) => price <= 0 || credits >= price;
 
-        public void Earn(long amount)
+        public void Earn(long amount, string reason = "wallet.reason.other")
         {
             if (amount <= 0) return;
             credits = Math.Min(long.MaxValue / 4, credits + amount);
             lifetimeEarned += amount;
+            Record(amount, reason);
         }
 
-        public bool Spend(long price)
+        public bool Spend(long price, string reason = "wallet.reason.purchase")
         {
             if (price < 0 || !CanAfford(price)) return false;
+            if (price == 0) return true;
             credits -= price;
+            lifetimeSpent += price;
+            Record(-price, reason);
             return true;
+        }
+
+        private void Record(long amount, string reason)
+        {
+            history.Insert(0, new WalletTransaction { utc = DateTime.UtcNow.ToString("o"), amount = amount, balanceAfter = credits, reason = reason });
+            if (history.Count > HistoryLimit) history.RemoveRange(HistoryLimit, history.Count - HistoryLimit);
         }
     }
 
@@ -104,7 +129,7 @@ namespace DriftCareer.Core.Gameplay
         public static bool BuyMissing(VehicleTuningState t, ICollection<string> owned, Wallet wallet)
         {
             long cost = MissingCost(t, owned);
-            if (!wallet.Spend(cost)) return false;
+            if (!wallet.Spend(cost, "wallet.reason.parts")) return false;
             foreach (var id in RequiredItems(t)) if (!owned.Contains(id)) owned.Add(id);
             return true;
         }

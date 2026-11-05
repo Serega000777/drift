@@ -45,7 +45,16 @@ namespace DriftCareer.Core.Persistence
 
         public bool Exists(string relativePath) => File.Exists(Resolve(relativePath));
 
-        public string ReadText(string relativePath) => File.ReadAllText(Resolve(relativePath), Encoding.UTF8);
+        /// <summary>Largest file the game will read (protects against giant/garbage files).</summary>
+        public const long MaxFileBytes = 8L * 1024 * 1024;
+
+        public string ReadText(string relativePath)
+        {
+            string path = Resolve(relativePath);
+            var info = new FileInfo(path);
+            if (info.Exists && info.Length > MaxFileBytes) throw new IOException("File too large: " + Path.GetFileName(path));
+            return File.ReadAllText(path, Encoding.UTF8);
+        }
 
         public void WriteTextAtomic(string relativePath, string content)
         {
@@ -141,6 +150,9 @@ namespace DriftCareer.Core.Persistence
         public int fromVersion;
         public string error;
         public string quarantinedPath;
+        /// <summary>True when a signer is configured and the signature is missing/invalid (edited outside the game).
+        /// Data is still loaded (never destroy player progress), but competitive/online features must not trust it.</summary>
+        public bool tampered;
     }
 
     /// <summary>
@@ -152,11 +164,15 @@ namespace DriftCareer.Core.Persistence
         private readonly IFileStore _files;
         private readonly IDocumentCodec<T> _codec;
 
-        public VersionedDocumentStore(IFileStore files, IDocumentCodec<T> codec)
+        public VersionedDocumentStore(IFileStore files, IDocumentCodec<T> codec, Security.ISaveSigner signer = null)
         {
             _files = files;
             _codec = codec;
+            Signer = signer;
         }
+
+        /// <summary>Optional HMAC signer (anti-tamper for local saves).</summary>
+        public Security.ISaveSigner Signer { get; set; }
 
         public string Serialize(T value)
         {
@@ -165,14 +181,18 @@ namespace DriftCareer.Core.Persistence
             var env = JsonValue.NewObject()
                 .Set("schema", _codec.SchemaId)
                 .Set("version", _codec.CurrentVersion)
-                .Set("crc", Crc32.ToHex(Crc32.Compute(dataJson)))
-                .Set("data", data);
+                .Set("crc", Crc32.ToHex(Crc32.Compute(dataJson)));
+            if (Signer != null) env.Set("sig", Signer.Sign(_codec.SchemaId + "|" + _codec.CurrentVersion + "|" + dataJson));
+            env.Set("data", data);
             return JsonWriter.Write(env, true);
         }
 
         public bool TryDeserialize(string text, out T value, out int version, out string error)
+            => TryDeserialize(text, out value, out version, out error, out _);
+
+        public bool TryDeserialize(string text, out T value, out int version, out string error, out bool tampered)
         {
-            value = null; version = 0; error = null;
+            value = null; version = 0; error = null; tampered = false;
             try
             {
                 var env = JsonParser.Parse(text);
@@ -182,8 +202,14 @@ namespace DriftCareer.Core.Persistence
                 if (version < 1 || version > _codec.CurrentVersion) { error = "unsupported_version_" + version; return false; }
                 var data = env.GetObject("data");
                 if (data == null) { error = "no_data"; return false; }
+                string dataJson = JsonWriter.Write(data, false);
                 string crc = env.GetString("crc");
-                if (crc != null && crc != Crc32.ToHex(Crc32.Compute(JsonWriter.Write(data, false)))) { error = "checksum_mismatch"; return false; }
+                if (crc != null && crc != Crc32.ToHex(Crc32.Compute(dataJson))) { error = "checksum_mismatch"; return false; }
+                if (Signer != null)
+                {
+                    string sig = env.GetString("sig");
+                    tampered = sig == null || !Signer.Verify(_codec.SchemaId + "|" + version + "|" + dataJson, sig);
+                }
                 value = _codec.Decode(data, version);
                 if (value == null) { error = "decode_failed"; return false; }
                 return true;
@@ -209,9 +235,10 @@ namespace DriftCareer.Core.Persistence
                 string text;
                 try { text = _files.ReadText(p); }
                 catch (IOException e) { firstError = firstError ?? e.Message; continue; }
-                if (TryDeserialize(text, out var value, out int version, out string error))
+                if (TryDeserialize(text, out var value, out int version, out string error, out bool tampered))
                 {
                     report.fromVersion = version;
+                    report.tampered = tampered;
                     if (i == 0) report.status = version < _codec.CurrentVersion ? LoadStatus.Migrated : LoadStatus.Loaded;
                     else report.status = i == 1 ? LoadStatus.RecoveredFromTemp : LoadStatus.RecoveredFromBackup;
                     report.error = firstError;

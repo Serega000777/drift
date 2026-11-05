@@ -125,12 +125,12 @@ namespace DriftCareer.Runtime
             {
                 if (reason != ChainEndReason.Completed || points < 1f) return;
                 int credits = EconomyRules.CreditsForChain(points);
-                if (credits > 0) Services.Profile.wallet.Earn(credits);
+                if (credits > 0) Services.Profile.wallet.Earn(credits, "wallet.reason.chain");
             };
             Session.Drift.DrillCompleted += d =>
             {
                 bool first = !Services.Profile.drills.ContainsKey(d.Id);
-                Services.Profile.wallet.Earn(first ? EconomyRules.FirstDrillReward : EconomyRules.RepeatDrillReward);
+                Services.Profile.wallet.Earn(first ? EconomyRules.FirstDrillReward : EconomyRules.RepeatDrillReward, "wallet.reason.drill");
                 Services.Challenges.Report(new RunStats { drillCompleted = d.Id });
             };
             Session.Car.Impact += (impulse, p, c) =>
@@ -297,7 +297,7 @@ namespace DriftCareer.Runtime
                     if (Tournament == null || Tournament.Done)
                     {
                         var def = TournamentRun.AcademyCup();
-                        if (!Services.Profile.wallet.Spend(def.entryFee)) { Ui.Toast(Services.T("garage.not_enough")); CurrentRun = RunKind.FreeDrive; break; }
+                        if (!Services.Profile.wallet.Spend(def.entryFee, "wallet.reason.entry_fee")) { Ui.Toast(Services.T("garage.not_enough")); CurrentRun = RunKind.FreeDrive; break; }
                         Tournament = new TournamentRun(def);
                     }
                     break;
@@ -363,7 +363,7 @@ namespace DriftCareer.Runtime
                 Tournament.SubmitRound(score);
                 if (Tournament.Done) reward += Tournament.Prize();
             }
-            Services.Profile.wallet.Earn(reward);
+            Services.Profile.wallet.Earn(reward, CurrentRun == RunKind.TournamentRound ? "wallet.reason.tournament" : "wallet.reason.run");
             Services.Challenges.Report(new RunStats { runScore = score });
             Services.SaveProfile();
             Session.Car.SetFrozen(true);
