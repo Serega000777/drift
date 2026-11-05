@@ -1,0 +1,54 @@
+# ---- Unity ----
+UnityProject/[Ll]ibrary/
+UnityProject/[Tt]emp/
+UnityProject/[Oo]bj/
+UnityProject/[Bb]uild/
+UnityProject/[Bb]uilds/
+UnityProject/[Ll]ogs/
+UnityProject/[Uu]ser[Ss]ettings/
+UnityProject/[Mm]emoryCaptures/
+UnityProject/[Rr]ecordings/
+UnityProject/Assets/Plugins/Editor/JetBrains*
+UnityProject/.vs/
+UnityProject/.vscode/
+UnityProject/.idea/
+UnityProject/*.csproj
+UnityProject/*.unityproj
+UnityProject/*.sln
+UnityProject/*.suo
+UnityProject/*.user
+UnityProject/*.userprefs
+UnityProject/*.pidb
+UnityProject/*.booproj
+UnityProject/*.svd
+UnityProject/*.pdb
+UnityProject/*.mdb
+UnityProject/*.opendb
+UnityProject/*.VC.db
+UnityProject/*.apk
+UnityProject/*.aab
+UnityProject/*.ipa
+UnityProject/*.unitypackage
+UnityProject/crashlytics-build.properties
+UnityProject/sysinfo.txt
+# Unity-generated folder for template tutorial assets is fine to commit, caches are not
+UnityProject/Assets/StreamingAssets/aa*/
+
+# ---- .NET core tests ----
+tools/**/bin/
+tools/**/obj/
+tools/**/TestResults/
+
+# ---- OS / editors ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ---- Secrets (never commit) ----
+*.env
+.env*
+**/secrets/**
+*.keystore
+*.jks
