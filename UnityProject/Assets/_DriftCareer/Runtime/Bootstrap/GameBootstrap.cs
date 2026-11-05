@@ -1,3 +1,4 @@
+using DriftCareer.Runtime.Security;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 #if DC_UGUI
@@ -41,7 +42,7 @@ namespace DriftCareer.Runtime
             var services = GameServices.Create();
             Controller = gameObject.AddComponent<GameController>();
             Controller.Boot(services);
-            Debug.Log($"[DriftCareer] Booted. Platform={services.Device.kind} Tier={services.Defaults.quality} Save={Application.persistentDataPath}");
+            SafeLog.Info($"Booted. Platform={services.Device.kind} Tier={services.Defaults.quality} Save={Application.persistentDataPath}");
         }
 
         /// <summary>

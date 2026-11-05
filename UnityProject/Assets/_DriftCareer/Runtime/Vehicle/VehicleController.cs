@@ -5,6 +5,7 @@ using DriftCareer.Core.Assists;
 using DriftCareer.Core.Surfaces;
 using DriftCareer.Core.Vehicle;
 using DriftCareer.Runtime.Track;
+using DriftCareer.Runtime.Security;
 using UnityEngine;
 
 namespace DriftCareer.Runtime.Vehicle
@@ -368,7 +369,7 @@ namespace DriftCareer.Runtime.Vehicle
             bool bad = !IsFinite(transform.position) || !IsFinite(Velocity) || !IsFinite(_rb.angularVelocity) || speed > 150f;
             if (bad)
             {
-                Debug.LogWarning("[DriftCareer] Vehicle state invalid - restoring last safe pose.");
+                SafeLog.Warn("Vehicle state invalid - restoring last safe pose.");
                 ResetTo(_lastSafePosition + Vector3.up * 0.3f, _lastSafeRotation, false);
                 return;
             }

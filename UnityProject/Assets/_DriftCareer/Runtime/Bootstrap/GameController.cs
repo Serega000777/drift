@@ -12,6 +12,7 @@ using DriftCareer.Runtime.LayoutEditor;
 using DriftCareer.Runtime.Track;
 using DriftCareer.Runtime.UI;
 using DriftCareer.Runtime.Vehicle;
+using DriftCareer.Runtime.Security;
 using UnityEngine;
 
 namespace DriftCareer.Runtime
@@ -50,6 +51,7 @@ namespace DriftCareer.Runtime
         private bool _handbrakeLatched;
         private int _lastTransitions;
         private float _saveTimer;
+        private float _authTimer;
         private string _pendingMode;
 
         public HudScreen Hud => _hud;
@@ -104,7 +106,6 @@ namespace DriftCareer.Runtime
             Flow.TryTransition(GameState.MainMenu);
             ShowOnly(_menu);
             ShowMenuBackdrop();
-            foreach (var w in services.StartupWarnings) Debug.LogWarning("[DriftCareer] " + w);
         }
 
         private float QualityScale()
@@ -532,6 +533,9 @@ namespace DriftCareer.Runtime
                 if (d.throttle > 0.05f || d.brake > 0.05f || Mathf.Abs(d.steer) > 0.2f) Intro.Skip();
             }
             Ui.Tick(dt);
+
+            _authTimer += dt;
+            if (_authTimer >= 1f) { _authTimer = 0f; Services.Auth.Tick(); }
 
             _saveTimer += dt;
             if (_saveTimer > 30f)

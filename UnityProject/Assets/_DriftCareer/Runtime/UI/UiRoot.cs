@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DriftCareer.Runtime.Security;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -45,7 +46,7 @@ namespace DriftCareer.Runtime.UI
             ps.sortingOrder = 10;
             var theme = Resources.Load<ThemeStyleSheet>("DriftCareer/UI/DriftTheme");
             if (theme != null) ps.themeStyleSheet = theme;
-            else Debug.LogWarning("[DriftCareer] UI theme not found (Resources/DriftCareer/UI/DriftTheme.tss)");
+            else SafeLog.Warn("UI theme not found (Resources/DriftCareer/UI/DriftTheme.tss)");
             ui._doc = go.AddComponent<UIDocument>();
             ui._doc.panelSettings = ps;
             go.SetActive(true);

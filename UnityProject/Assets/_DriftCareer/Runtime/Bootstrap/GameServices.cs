@@ -13,7 +13,9 @@ using DriftCareer.Core.Platform;
 using DriftCareer.Core.Surfaces;
 using DriftCareer.Core.Vehicle;
 using DriftCareer.Core;
+using DriftCareer.Core.Security;
 using DriftCareer.Runtime.Input;
+using DriftCareer.Runtime.Security;
 using UnityEngine;
 
 namespace DriftCareer.Runtime
@@ -50,7 +52,21 @@ namespace DriftCareer.Runtime
         public IAccountService Account { get; private set; }
         public ChallengeTracker Challenges { get; private set; }
         public const string GhostsDir = "ghosts";
+        public const string PrivacyFile = "privacy.json";
+        public const string ExportsDir = "exports";
         public readonly List<string> StartupWarnings = new List<string>();
+
+        public IKeyProvider Keys { get; private set; }
+        public ISecureStore Secure { get; private set; }
+        public AuthService Auth { get; private set; }
+        public VersionedDocumentStore<PrivacySettings> PrivacyStore { get; private set; }
+        public PrivacySettings Privacy { get; private set; }
+        public PlatformPolicy Policy => Account.Policy;
+
+        /// <summary>Effective permissions now (platform policy + age/consent + sign-in + save integrity).</summary>
+        public Capabilities Capabilities => PrivacyRules.Resolve(Policy, Privacy, Auth.IsSignedInOnline, !Profile.integrityCompromised);
+
+        public string Nickname => string.IsNullOrEmpty(Profile.nickname) ? PlayerIdentity.DefaultFor(Auth.InstallId) : Profile.nickname;
 
         public static GameServices Create()
         {
@@ -63,8 +79,12 @@ namespace DriftCareer.Runtime
         private void Build()
         {
             Files = new LocalFileStore(Path.Combine(Application.persistentDataPath, "DriftCareer"));
-            SettingsStore = new VersionedDocumentStore<SettingsData>(Files, new SettingsCodec());
-            ProfileStore = new VersionedDocumentStore<PlayerProfile>(Files, new ProfileCodec());
+            Keys = new DeviceKeyProvider();
+            Secure = new EncryptedFileSecureStore(Files, Keys);
+            var signer = new HmacSaveSigner(Keys);
+            SettingsStore = new VersionedDocumentStore<SettingsData>(Files, new SettingsCodec(), signer);
+            ProfileStore = new VersionedDocumentStore<PlayerProfile>(Files, new ProfileCodec(), signer);
+            PrivacyStore = new VersionedDocumentStore<PrivacySettings>(Files, new PrivacyCodec(), signer);
             Obstacles = ObstacleLibrary.CreateDefault();
             LayoutStore = new VersionedDocumentStore<ObstacleLayout>(Files, new LayoutCodec(Obstacles));
 
@@ -75,6 +95,13 @@ namespace DriftCareer.Runtime
                     || Application.systemLanguage == SystemLanguage.Belarusian ? "ru" : "en";
             Profile = ProfileStore.Load(ProfileFile, out var pr);
             Report("profile", pr);
+            if (pr.tampered && pr.status != LoadStatus.CreatedDefault)
+            {
+                // Never wipe progress; just stop trusting it for anything competitive (sticky flag).
+                Profile.integrityCompromised = true;
+                StartupWarnings.Add("profile signature invalid - online records disabled for this profile");
+            }
+            Privacy = PrivacyStore.Load(PrivacyFile, out _);
             if (!Profile.ownedVehicles.Contains(Profile.selectedVehicleId)) Profile.selectedVehicleId = "placeholder_rwd";
 
             Loc = new LocalizationService();
@@ -104,9 +131,11 @@ namespace DriftCareer.Runtime
             Defaults = DeviceTierClassifier.DefaultsFor(Device, Settings.quality);
             Platform = new LocalPlatformServices(Device.kind);
             Account = new LocalAccountService(PlatformPolicy.DefaultStore(Device.kind));
+            Auth = new AuthService(new OfflineAuthBackend(), Secure);
+            Auth.Restore();
             Challenges = new ChallengeTracker(Profile.challenges, DateTime.UtcNow);
             Input = new InputRouter { Settings = Settings };
-            foreach (var w in StartupWarnings) Debug.LogWarning("[DriftCareer] " + w);
+            foreach (var w in StartupWarnings) SafeLog.Warn(w);
         }
 
         private static bool TouchSupported()
@@ -207,8 +236,8 @@ namespace DriftCareer.Runtime
                 if (!Files.Exists(path)) return null;
                 return GhostRecording.FromJson(JsonParser.Parse(Files.ReadText(path)));
             }
-            catch (Core.JsonException e) { Debug.LogWarning("[DriftCareer] ghost: " + e.Message); return null; }
-            catch (IOException e) { Debug.LogWarning("[DriftCareer] ghost: " + e.Message); return null; }
+            catch (Core.JsonException e) { SafeLog.Warn("ghost: " + e.Message); return null; }
+            catch (IOException e) { SafeLog.Warn("ghost: " + e.Message); return null; }
         }
 
         public AssistSettings AssistSettings()
@@ -227,6 +256,41 @@ namespace DriftCareer.Runtime
 
         public void SaveProfile() => Try(() => ProfileStore.Save(ProfileFile, Profile));
 
+        public void SavePrivacy()
+        {
+            Privacy.Enforce();
+            Try(() => PrivacyStore.Save(PrivacyFile, Privacy));
+        }
+
+        /// <summary>Platform sign-in provider offered by this build (SDK plugins replace the placeholder).</summary>
+        public IAuthProvider PlatformAuthProvider => new UnavailableAuthProvider(AuthProviders.ForStore(Policy.store));
+
+        public NicknameError SetNickname(string nick)
+        {
+            var err = PlayerIdentity.Validate(nick);
+            if (err != NicknameError.None) return err;
+            Profile.nickname = PlayerIdentity.Sanitize(nick);
+            SaveProfile();
+            return NicknameError.None;
+        }
+
+        /// <summary>Writes a JSON copy of all local player data (right of access / portability). Returns a display path.</summary>
+        public string ExportPlayerData()
+        {
+            string name = ExportsDir + "/drift_career_data_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".json";
+            Try(() => Files.WriteTextAtomic(name, JsonWriter.Write(PrivacyData.Export(Files, Crypto.Mask(Auth.InstallId)), true)));
+            return LogRedactor.Redact(Path.Combine(Application.persistentDataPath, "DriftCareer", name));
+        }
+
+        /// <summary>Right to erasure for local data: deletes saves, layouts, ghosts, exports, tokens and the install secret.</summary>
+        public void EraseAllPlayerData()
+        {
+            Auth.SignOut();
+            int n = PrivacyData.EraseAll(Files, Secure);
+            DeviceKeyProvider.Forget();
+            SafeLog.Info("Erased local player data files: " + n);
+        }
+
         public void SaveLayout(ObstacleLayout layout)
         {
             layout.name = LayoutNames.Sanitize(layout.name);
@@ -239,7 +303,7 @@ namespace DriftCareer.Runtime
         {
             var list = new List<string>();
             try { list.AddRange(Files.List(LayoutsDir, ".json")); }
-            catch (IOException e) { Debug.LogWarning("[DriftCareer] list layouts: " + e.Message); }
+            catch (IOException e) { SafeLog.Warn("list layouts: " + e.Message); }
             list.Sort(StringComparer.Ordinal);
             return list;
         }
@@ -247,7 +311,7 @@ namespace DriftCareer.Runtime
         public ObstacleLayout LoadLayoutFile(string path)
         {
             var l = LayoutStore.Load(path, out var r);
-            if (r.status == LoadStatus.CorruptReplacedWithDefault) Debug.LogWarning("[DriftCareer] Corrupt layout replaced: " + path);
+            if (r.status == LoadStatus.CorruptReplacedWithDefault) SafeLog.Warn("Corrupt layout replaced: " + path);
             return l;
         }
 
@@ -266,8 +330,8 @@ namespace DriftCareer.Runtime
         private static void Try(Action a)
         {
             try { a(); }
-            catch (IOException e) { Debug.LogError("[DriftCareer] Save failed: " + e.Message); }
-            catch (UnauthorizedAccessException e) { Debug.LogError("[DriftCareer] Save failed: " + e.Message); }
+            catch (IOException e) { SafeLog.Error("Save failed: " + e.Message); }
+            catch (UnauthorizedAccessException e) { SafeLog.Error("Save failed: " + e.Message); }
         }
     }
 }
