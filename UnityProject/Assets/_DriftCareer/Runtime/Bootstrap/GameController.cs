@@ -43,6 +43,7 @@ namespace DriftCareer.Runtime
         private EditorScreen _editorScreen;
         private ResultsScreen _results;
         private ChallengesScreen _challenges;
+        private OnboardingScreen _onboarding;
         private readonly GhostRecorder _recorder = new GhostRecorder();
         private GhostRecording _ghost;
         private GhostCar _ghostCar;
@@ -86,6 +87,7 @@ namespace DriftCareer.Runtime
             _editorScreen = Ui.Register(new EditorScreen());
             _results = Ui.Register(new ResultsScreen());
             _challenges = Ui.Register(new ChallengesScreen());
+            _onboarding = Ui.Register(new OnboardingScreen());
             services.Loc.LanguageChanged += _ => Ui.RebuildAll();
             services.Input.DeviceChanged += _ => _hud.RefreshTouchVisibility();
             services.Challenges.Completed += d => Ui.Toast(services.Loc.Format("hud.challenge_done", d.reward), 2.5f, "#3DDC84");
@@ -104,8 +106,9 @@ namespace DriftCareer.Runtime
             Clock.Finished += OnRunFinished;
 
             Flow.TryTransition(GameState.MainMenu);
-            ShowOnly(_menu);
             ShowMenuBackdrop();
+            if (services.Privacy.NeedsOnboarding) ShowOnboarding(() => ShowOnly(_menu));
+            else ShowOnly(_menu);
         }
 
         private float QualityScale()
@@ -142,7 +145,7 @@ namespace DriftCareer.Runtime
 
         private void ShowOnly(UiScreen screen)
         {
-            foreach (var s in new UiScreen[] { _menu, _pause, _garage, _settings, _editorScreen, _results, _challenges })
+            foreach (var s in new UiScreen[] { _menu, _pause, _garage, _settings, _editorScreen, _results, _challenges, _onboarding })
                 if (s != screen && s.Visible) s.Hide();
             if (screen != null && !screen.Visible) screen.Show();
             bool hud = Flow.State == GameState.Driving || Flow.State == GameState.Intro;
@@ -196,6 +199,13 @@ namespace DriftCareer.Runtime
             ApplySettingsLive();
             if (Flow.Previous == GameState.Paused) { Flow.TryTransition(GameState.Paused); ShowOnly(_pause); }
             else { Flow.TryTransition(GameState.MainMenu); ShowOnly(_menu); }
+        }
+
+        /// <summary>Age gate, consents and sign-in (first run, policy update, or from the account screen).</summary>
+        public void ShowOnboarding(Action onDone)
+        {
+            _onboarding.Begin(onDone);
+            ShowOnly(_onboarding);
         }
 
         public void OpenChallenges()
@@ -501,7 +511,9 @@ namespace DriftCareer.Runtime
                 switch (Flow.State)
                 {
                     case GameState.MainMenu:
-                        if (_challenges.Visible) _challenges.HandleMenu(menu); else _menu.HandleMenu(menu);
+                        if (_onboarding.Visible) _onboarding.HandleMenu(menu);
+                        else if (_challenges.Visible) _challenges.HandleMenu(menu);
+                        else _menu.HandleMenu(menu);
                         break;
                     case GameState.Garage: _garage.HandleMenu(menu); break;
                     case GameState.Settings: _settings.HandleMenu(menu); break;

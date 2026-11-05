@@ -220,3 +220,17 @@
 .dc-toast--show { opacity: 1; translate: 0 0; }
 .dc-text-field { font-size: 26px; min-height: 60px; }
 .dc-list { max-height: 420px; }
+
+/* ---------- onboarding ---------- */
+.ob-bg { background-color: rgba(6, 7, 9, 0.88); }
+.ob-card { width: 980px; translate: 0 40px; opacity: 0; transition-property: translate, opacity; transition-duration: 0.45s, 0.35s; transition-timing-function: ease-out-back, ease-out-cubic;
+    border-top-width: 6px; border-top-color: var(--accent); }
+.ob-card--in { translate: 0 0; opacity: 1; }
+.ob-steps { margin-bottom: 18px; }
+.ob-step { width: 64px; height: 8px; border-radius: 4px; margin-right: 10px; background-color: rgba(255,255,255,0.15);
+    transition-property: background-color, width; transition-duration: 0.3s; }
+.ob-step.is-selected { background-color: var(--accent); width: 110px; }
+.ob-step.is-done { background-color: var(--ok); }
+.ob-choices { justify-content: space-between; }
+.ob-choice { flex-grow: 1; min-height: 96px; font-size: 32px; -unity-text-align: middle-center; border-left-width: 0; }
+.ob-error { color: var(--bad); }

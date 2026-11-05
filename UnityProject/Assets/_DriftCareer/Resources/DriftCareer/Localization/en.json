@@ -1,4 +1,30 @@
 {
+  "auth": {
+    "guest_status": "Guest — progress on this device",
+    "provider": {
+      "Apple": "Apple",
+      "Epic": "Epic Games",
+      "GameCenter": "Game Center",
+      "GooglePlay": "Google Play",
+      "Guest": "Guest",
+      "Nintendo": "Nintendo Account",
+      "PlayStation": "PlayStation Network",
+      "Steam": "Steam",
+      "Xbox": "Xbox"
+    },
+    "sign_out": "Sign out",
+    "state": {
+      "Error": "Sign-in error",
+      "Refreshing": "Refreshing session…",
+      "SignedIn": "Signed in",
+      "SignedOut": "Signed out",
+      "SigningIn": "Signing in…"
+    },
+    "unavailable": {
+      "text": "Signing in with {0} arrives with the account server. For now progress is saved on this device.",
+      "title": "Sign-in not available yet"
+    }
+  },
   "challenge": {
     "ChainScore": "A chain worth {0} points",
     "CleanRun": "Drive {0} s without hits",
@@ -444,6 +470,28 @@
     "tire_stack": "Tire stack",
     "tire_wall": "Tire wall"
   },
+  "onboarding": {
+    "accept": "Accept and continue",
+    "age": {
+      "adult": "18 or older",
+      "teen": "13–17",
+      "text": "This lets us apply the right safety settings. We do not store your date of birth.",
+      "title": "How old are you?",
+      "under13": "Under 13"
+    },
+    "guest": "Play as guest",
+    "privacy": {
+      "minor_note": "Personalized ads and marketing are not available to players under 18.",
+      "text": "The game keeps progress on this device only. We do not collect your name, e-mail or phone. Everything optional is off — turn it on if you want to help the project.",
+      "title": "Your data"
+    },
+    "signin": {
+      "note": "We never ask for your platform password: sign-in uses the platform's official screen.",
+      "text": "Guest keeps progress on this device. Signing in with your platform will sync progress across phone, PC and console once the account server is live.",
+      "title": "How do you want to play?"
+    },
+    "signin_with": "Sign in with {0}"
+  },
   "part": {
     "fenders": {
       "flares": "Flares",
@@ -504,6 +552,26 @@
     "resume": "Resume",
     "settings": "Settings",
     "title": "Paused"
+  },
+  "privacy": {
+    "analytics": "Anonymous gameplay statistics",
+    "crash_reports": "Crash reports (no personal data)",
+    "marketing": "News and offers",
+    "personalized_ads": "Personalized ads",
+    "policy": "Privacy policy",
+    "policy_text": "Version 2026-11 (draft, to be reviewed by a lawyer before release).\n\n• What we store: settings, progress, tuning, layouts and run recordings — on your device only.\n• What we do not collect: name, e-mail, phone, contacts, precise location.\n• The install ID is random and not tied to your hardware.\n• Sign-in tokens are stored encrypted and never written to logs.\n• Optional data (crash reports, statistics, ads, marketing) only with your consent, which you can withdraw any time.\n• Your rights: export all your data and delete it in Account → Privacy.\n• Children under 13: chat, publishing and personalized ads are disabled."
+  },
+  "profile": {
+    "nick_error": {
+      "InvalidCharacters": "Letters, digits, space, _ - . only",
+      "LooksLikePersonalData": "Looks like personal data (e-mail/phone)",
+      "None": "",
+      "Reserved": "This nickname is reserved",
+      "TooLong": "Nickname is too long",
+      "TooShort": "Nickname is too short"
+    },
+    "nickname": "Nickname",
+    "nickname_hint": "3–20 characters. Don't use your real name, e-mail or phone."
   },
   "results": {
     "best": "Best: {0}",
