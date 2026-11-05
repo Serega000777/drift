@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Installed by tools/setup/install-hooks.(sh|ps1): blocks commits that contain credentials.
+exec tools/security/scan-secrets.sh --staged
