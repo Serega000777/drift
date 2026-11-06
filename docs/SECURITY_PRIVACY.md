@@ -64,6 +64,7 @@
 - **Drift Career → 4. Release Hardening**: IL2CPP, stripping High, удаление `DC_SHOW_REFERENCE_NAMES`/`DC_DEV_TOOLS`, без стек-трейсов в логах плеера, Development Build выкл., скан секретов в Assets.
 - `tools/security/scan-secrets.sh` (+ `.ps1`): pre-commit hook (`tools/setup/install-hooks.*`) и задача CI.
 - Репозиторий: приватный, 2FA, защита ветки, GitHub secret scanning + push protection, keystore/сертификаты — только в секретах CI.
+- VPS (`docs/VPS_SETUP.md`): ключ к GitHub только на чтение, вход по SSH-ключам, фаервол, fail2ban, автообновления; таймер обновления от непривилегированного пользователя (запись в ветку = выполнение тестов на VPS → 2FA обязательна).
 
 ## 10. Чек-лист перед релизом
 - [ ] Платформенное хранилище ключей вместо PlayerPrefs-секрета.

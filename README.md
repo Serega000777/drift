@@ -46,6 +46,7 @@ tools/setup/install-hooks.sh
 - `docs/ARCHITECTURE.md` — архитектура, платформы, аккаунт, онлайн, UGC, ИИ.
 - `docs/PHYSICS_SPEC.md` — физика, тюнинг, повреждения.
 - `docs/SECURITY_PRIVACY.md` — безопасность, вход, конфиденциальность, дети; `docs/BACKEND_API.md` — контракт сервера аккаунтов; `SECURITY.md` — как сообщить об уязвимости.
+- `docs/VPS_SETUP.md` — VPS: безопасная настройка и автообновление проекта с GitHub.
 - `docs/TASKS.md`, `docs/DECISIONS.md`, `docs/TEST_PLAN.md`, `docs/ROADMAP.md`, `docs/ASSET_LICENSES.md`, `docs/COMPETITORS.md`.
 - Исходные требования: `docs/GAME_IDEA.md`, `docs/TECHNICAL_SPEC.md`, `docs/CLAUDE_MASTER_PROMPT.md`.
 

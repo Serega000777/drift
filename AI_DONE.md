@@ -113,3 +113,9 @@
 
 ## 17. Чистота кода
 - `tools/CoreTests`: `EnableNETAnalyzers`, `TreatWarningsAsErrors` — 0 предупреждений. Runtime: 0 предупреждений в обоих вариантах ввода. Удалены мёртвые поля/параметры. `.editorconfig` (стиль C#). **[T][C]**
+
+## 18. VPS (`tools/setup/vps-setup.sh`, `vps-update.sh`, `docs/VPS_SETUP.md`)
+- Схема «VPS сам забирает с GitHub»: ключ развёртывания только на чтение, доступы к VPS никому не передаются.
+- `vps-setup.sh`: git, git-lfs, .NET 8, ufw (SSH/80/443), fail2ban, автообновления безопасности, опционально `--harden-ssh` (только ключи, без root; отказ, если у пользователя нет ключа), systemd-таймер каждые 5 мин.
+- `vps-update.sh`: только fast-forward, `git lfs pull`, тесты ядра при новых коммитах, журнал `~/drift-status.log`; при локальных правках/расхождении — «update blocked», ничего не ломает.
+- Проверено: `vps-update.sh` — на локальном bare-репозитории (нет изменений → выход; новый коммит → 120 тестов OK; локальная правка → блок; после очистки → OK); юниты systemd — `systemd-analyze verify`; `vps-setup.sh` — только `bash -n`. **На реальном VPS не запускалось.**
